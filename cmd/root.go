@@ -4,8 +4,11 @@ import (
 	"os"
 
 	"github.com/4okimi7uki/pvvc/internal/app"
+	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/spf13/cobra"
 )
+
+var cfg = config.New()
 
 var rootCmd = &cobra.Command{
 	Use:          "pvvc",
@@ -14,7 +17,7 @@ var rootCmd = &cobra.Command{
 	Long:         "long.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		if err := app.RunMain(); err != nil {
+		if err := app.RunMain(cfg); err != nil {
 			return err
 		}
 
