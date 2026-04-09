@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (c *Client) FetchBillingCharges(start, end time.Time) ([]BillingCharge, error) {
+func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
 	params := url.Values{}
 	params.Set("from", start.Format(time.DateOnly))
 	params.Set("to", end.Format(time.DateOnly))
@@ -29,7 +29,6 @@ func (c *Client) FetchBillingCharges(start, end time.Time) ([]BillingCharge, err
 	defer func() {
 		_ = resp.Body.Close()
 	}()
-	fmt.Println(resp.StatusCode)
 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("vercel: unexpected status %d", resp.StatusCode)
@@ -42,7 +41,6 @@ func (c *Client) FetchBillingCharges(start, end time.Time) ([]BillingCharge, err
 
 	var charges []BillingCharge
 	dec := json.NewDecoder(bytes.NewReader(body))
-	fmt.Println(string(body))
 
 	for dec.More() {
 		var c BillingCharge
@@ -52,5 +50,5 @@ func (c *Client) FetchBillingCharges(start, end time.Time) ([]BillingCharge, err
 		charges = append(charges, c)
 	}
 
-	return charges, nil
+	return &Report{Charges: charges}, nil
 }
