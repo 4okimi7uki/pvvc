@@ -2,6 +2,10 @@ package vercel
 
 import "time"
 
+type Report struct {
+	Charges []BillingCharge
+}
+
 type BillingChargeTags struct {
 	ProjectID   string `json:"ProjectId"`
 	ProjectName string `json:"ProjectName"`
