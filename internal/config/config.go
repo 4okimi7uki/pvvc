@@ -11,9 +11,9 @@ func New() *viper.Viper {
 	v := viper.New()
 	v.AutomaticEnv()
 
-	v.BindEnv("vercel.token", "VERCEL_TOKEN")
-	v.BindEnv("vercel.team_id", "TEAM_ID")
-	v.BindEnv("ga4.property_id", "PROPERTY_ID")
+	_ = v.BindEnv("vercel.token", "VERCEL_TOKEN")
+	_ = v.BindEnv("vercel.team_id", "TEAM_ID")
+	_ = v.BindEnv("ga4.property_id", "PROPERTY_ID")
 
 	return v
 }

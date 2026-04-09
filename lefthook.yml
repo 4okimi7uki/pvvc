@@ -1,0 +1,4 @@
+jobs:
+  - name: lint
+    glob: "**/*.go"
+    run: golangci-lint run {staged_files}
