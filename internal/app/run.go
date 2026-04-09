@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/4okimi7uki/pvvc/internal/fx"
 	"github.com/4okimi7uki/pvvc/internal/ga4"
 	"github.com/4okimi7uki/pvvc/internal/vercel"
 	"github.com/spf13/viper"
@@ -20,11 +21,11 @@ func RunMain(v *viper.Viper) error {
 		return err
 	}
 
-	_, err = g_client.FetchDailyPageViews(ctx, "2daysAgo", "yesterday")
-
-	// for _, r := range report.Rows {
-	// 	fmt.Printf("PV: %d, path: %s\n", r.Views, r.PagePath)
-	// }
+	report, err := g_client.FetchDailyPageViews(ctx, "2daysAgo", "yesterday")
+	pv := report.TotalPageView()
+	if err != nil {
+		return err
+	}
 
 	vecel_client, err := vercel.New(
 		v.GetString("vercel.token"),
@@ -33,26 +34,35 @@ func RunMain(v *viper.Viper) error {
 	if err != nil {
 		return fmt.Errorf("failed to create vercel client: %w", err)
 	}
-	charges, err := vecel_client.FetchBillingCharges(
-		time.Now().AddDate(0, 0, -7),
-		time.Now(),
+
+	start := time.Now().AddDate(0, 0, -2)
+	end := time.Now().AddDate(0, 0, -1)
+
+	cost, err := vecel_client.FetchBillingCharges(
+		start,
+		end,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to vercel fetching: %w", err)
 	}
 
-	for _, charge := range charges {
-		if charge.BilledCost == 0.0 {
-			continue
-		}
-
-		var start = charge.ChargePeriodStart.Format("2006/01/02")
-		var end = charge.ChargePeriodEnd.Format("2006/01/02")
-
-		fmt.Println("---")
-		fmt.Printf("Period: %s - %s\n", start, end)
-		fmt.Printf("ServiceName: %s\n BilledCost: %f USD\n", charge.ServiceName, charge.BilledCost)
+	totalCost := cost.TotalCost()
+	rate, err := fx.FetchUSDToJPY(end)
+	if err != nil {
+		return err
 	}
+	totalCostJP := totalCost * rate
+
+	fmt.Println("---")
+	fmt.Println("Cost/PV")
+	fmt.Printf("  USD: %f\n", totalCost/float64(pv))
+	fmt.Printf("  JPY: %f\n", totalCostJP/float64(pv))
+	fmt.Println("---")
+	fmt.Printf("Period: %s - %s\n", start.Format("2006/01/02"), end.Format("2006/01/02"))
+	fmt.Printf("PV: %d\n", pv)
+	fmt.Println("Cost")
+	fmt.Printf("  USD: %.2f\n", totalCost)
+	fmt.Printf("  JPY: %.2f ... $1 = ¥%.2f\n", totalCost*totalCostJP, rate)
 
 	return nil
 }
