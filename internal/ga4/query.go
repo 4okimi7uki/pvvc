@@ -8,8 +8,6 @@ import (
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
 
-const dateLayout = "20060102"
-
 func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate string) (*Report, error) {
 	req := &analyticsdata.RunReportRequest{
 		DateRanges: []*analyticsdata.DateRange{
