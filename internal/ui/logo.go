@@ -15,15 +15,15 @@ func PrintLogo() {
  ╚═╝╚═╝    ╚═══╝ ╚═╝ ╚═══╝ ╚═╝ ╚═════╝
                                      `
 	const (
-		tagline = "Compare Vercel spend with GA4 traffic."
-		credit  = "crafted by 4okimi7uki :P"
+		tagline = "Compare Vercel spend with GA4 traffic :P"
+		repoURL = "https://github.com/4okimi7uki/pvvc"
 	)
-	width := max(len(tagline), len(credit)) + 3
+	width := max(len(tagline), len(repoURL)) + 3
 	upperBar := strings.Repeat(".", width)
 	belowBar := strings.Repeat("·", width)
 
 	fmt.Println(Mastered(logo))
-	items := []string{upperBar, " " + tagline, " " + credit, belowBar}
+	items := []string{" " + tagline, upperBar, " " + repoURL, belowBar}
 	for _, item := range items {
 		fmt.Println(Mastered(item))
 
