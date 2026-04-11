@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func FetchUSDToJPY(date time.Time) (float64, error) {
-	url := fmt.Sprintf("https://api.frankfurter.dev/v2/rates?base=USD&quotes=JPY&date=%s", date.Format("2006-01-02"))
+func FetchUSDToJPY(start time.Time, end time.Time) (map[string]float64, error) {
+	url := fmt.Sprintf("https://api.frankfurter.dev/v2/rates?base=USD&quotes=JPY&from=%s&to=%s", start.Format("2006-01-02"), end.Format("2006-01-02"))
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
-		return 0, fmt.Errorf("fx: network response is error: %w", err)
+		return nil, fmt.Errorf("fx: network response is error: %w", err)
 	}
 
 	client := &http.Client{
@@ -21,22 +21,33 @@ func FetchUSDToJPY(date time.Time) (float64, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	defer func() {
 		_ = resp.Body.Close()
 	}()
 
-	var result []struct {
+	var response []struct {
 		Date  string  `json:"date"`
 		Base  string  `json:"base"`
 		Quote string  `json:"quote"`
 		Rate  float64 `json:"rate"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return 0, fmt.Errorf("fx: failed to decode response: %w", err)
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("fx: failed to decode response: %w", err)
 	}
 
-	return result[0].Rate, nil
+	results := make(map[string]float64)
+
+	for _, r := range response {
+		date, err := time.Parse("2006-01-02", r.Date)
+		if err != nil {
+			return nil, err
+		}
+		key := date.Format("20060102")
+		results[key] = r.Rate
+	}
+
+	return results, nil
 }
