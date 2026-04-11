@@ -5,6 +5,7 @@ go 1.25.4
 require (
 	cloud.google.com/go/auth v0.20.0
 	github.com/briandowns/spinner v1.23.2
+	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.19.0
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.10.2
