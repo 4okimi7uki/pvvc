@@ -8,12 +8,38 @@ import (
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
 
+func parseReport(propertyID string, resp *analyticsdata.RunReportResponse) (*Report, error) {
+	report := &Report{
+		PropertyID: propertyID,
+		Rows:       make([]DailyPageViews, 0, len(resp.Rows)),
+	}
+
+	for _, row := range resp.Rows {
+		if len(row.DimensionValues) == 0 || len(row.MetricValues) == 0 {
+			continue
+		}
+
+		date := row.DimensionValues[0].Value
+		pagePath := row.DimensionValues[1].Value
+
+		views, err := strconv.ParseInt(row.MetricValues[0].Value, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("ga4: failed to parse views %q: %w", row.MetricValues[0].Value, err)
+		}
+
+		report.Rows = append(report.Rows, DailyPageViews{PagePath: pagePath, Views: views, Date: date})
+	}
+
+	return report, nil
+}
+
 func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate string) (*Report, error) {
 	req := &analyticsdata.RunReportRequest{
 		DateRanges: []*analyticsdata.DateRange{
 			{StartDate: startDate, EndDate: endDate},
 		},
 		Dimensions: []*analyticsdata.Dimension{
+			{Name: "date"},
 			{Name: "pagePath"},
 		},
 		Metrics: []*analyticsdata.Metric{
@@ -30,28 +56,4 @@ func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate str
 	}
 
 	return parseReport(c.propertyID, resp)
-}
-
-func parseReport(propertyID string, resp *analyticsdata.RunReportResponse) (*Report, error) {
-	report := &Report{
-		PropertyID: propertyID,
-		Rows:       make([]DailyPageViews, 0, len(resp.Rows)),
-	}
-
-	for _, row := range resp.Rows {
-		if len(row.DimensionValues) == 0 || len(row.MetricValues) == 0 {
-			continue
-		}
-
-		pagePath := row.DimensionValues[0].Value
-
-		views, err := strconv.ParseInt(row.MetricValues[0].Value, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("ga4: failed to parse views %q: %w", row.MetricValues[0].Value, err)
-		}
-
-		report.Rows = append(report.Rows, DailyPageViews{PagePath: pagePath, Views: views})
-	}
-
-	return report, nil
 }
