@@ -21,13 +21,14 @@ func RunMain(v *viper.Viper) error {
 	var pv int64
 	var totalCost float64
 	var rate float64
-	start := time.Now().AddDate(0, 0, -2)
-	end := time.Now().AddDate(0, 0, -1)
+	start := time.Now().AddDate(0, 0, -1)
+	end := time.Now()
 
 	err := ui.WithSpinner("Fetching...", func(update func(string), addDone func(string)) error {
 		ctx := context.Background()
 		eg, ctx := errgroup.WithContext(ctx)
 
+		// GA4 PV
 		eg.Go(func() error {
 			propertyID := v.GetString("ga4.property_id")
 			jsonStr := v.GetString("ga4.credential")
@@ -45,7 +46,7 @@ func RunMain(v *viper.Viper) error {
 				addDone(ui.Red("  ✗ ") + "GA4")
 				return err
 			}
-			report, err := client.FetchDailyPageViews(ctx, "2daysAgo", "yesterday")
+			report, err := client.FetchDailyPageViews(ctx, "yesterday", "today")
 			if err != nil {
 				addDone(ui.Red("  ✗ ") + "GA4")
 				return err
@@ -56,6 +57,7 @@ func RunMain(v *viper.Viper) error {
 			return nil
 		})
 
+		// Vercel cost
 		eg.Go(func() error {
 			client, err := vercel.New(
 				v.GetString("vercel.token"),
@@ -80,6 +82,7 @@ func RunMain(v *viper.Viper) error {
 			return nil
 		})
 
+		// FX
 		eg.Go(func() error {
 			var err error
 			rate, err = fx.FetchUSDToJPY(end)
@@ -107,17 +110,7 @@ func RunMain(v *viper.Viper) error {
 
 	totalCostJP := totalCost * rate
 
-	fmt.Println("---")
-	fmt.Println("Cost/PV")
-	fmt.Printf("  USD: %f\n", totalCost/float64(pv))
-	fmt.Printf("  JPY: %f\n", totalCostJP/float64(pv))
-	fmt.Println("---")
-	fmt.Printf(" Period: %s - %s\n", start.Format("2006/01/02"), end.Format("2006/01/02"))
-	fmt.Printf(" PV: %d\n", pv)
-	fmt.Println(" Cost")
-	fmt.Printf("   USD: %.2f\n", totalCost)
-	fmt.Printf("   JPY: %.2f\n", totalCostJP)
-	fmt.Printf(" Rate: $1 = ¥%.2f\n", rate)
+	ui.PrintReport(start, pv, totalCost, totalCostJP, rate)
 
 	return nil
 }
