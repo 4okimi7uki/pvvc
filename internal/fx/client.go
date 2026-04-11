@@ -16,7 +16,7 @@ func FetchUSDToJPY(start time.Time, end time.Time) (map[string]float64, error) {
 	}
 
 	client := &http.Client{
-		Timeout: 3 * time.Second,
+		Timeout: 10 * time.Second,
 	}
 
 	resp, err := client.Do(req)
