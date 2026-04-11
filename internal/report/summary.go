@@ -82,22 +82,18 @@ type row struct {
 }
 
 func PrintSomeDayReports(start, end time.Time, reports []DailyReport) {
-	summaryRows := []row{
-		{"Period", fmt.Sprintf("%s ~ %s", start.Format("2006/01/02"), end.Format("2006/01/02"))},
-	}
-	printSection("Summary")
-	fmt.Println()
-	for _, s := range summaryRows {
-		fmt.Printf(" %-8s %s\n", s.label, s.value)
-	}
+	var allPv int64
+	var allCost float64
 
-	var tableRows [][]string
-	tableRows = append(tableRows, []string{"Date", "PV", "Cost (USD)", "Cost (JPY)", "Cost/PV (USD)", "Cost/PV (JPY)", "Rate"})
+	var metricsRows [][]string
+	metricsRows = append(metricsRows, []string{"Date", "PV", "Cost (USD)", "Cost (JPY)", "Cost/PV (USD)", "Cost/PV (JPY)", "Rate"})
 	for _, r := range reports {
 		_costPerPVUSD := r.TotalCost / float64(r.PV)
 		_costPerPVJPY := r.TotalCostJPY / float64(r.PV)
+		allPv += r.PV
+		allCost += r.TotalCost
 
-		tableRows = append(tableRows, []string{
+		metricsRows = append(metricsRows, []string{
 			r.Date.Format("01/02 (Mon)"),
 			humanize.Comma(r.PV),
 			humanize.CommafWithDigits(r.TotalCost, 4),
@@ -109,7 +105,18 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport) {
 
 	}
 
+	summaryRows := []row{
+		{"Period", fmt.Sprintf("%s ~ %s", start.Format("2006/01/02"), end.Format("2006/01/02"))},
+		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
+		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
+	}
+	printSection("Summary")
+	fmt.Println()
+	for _, s := range summaryRows {
+		fmt.Printf(" %-10s %s\n", s.label, s.value)
+	}
+
 	printSection("Metrics")
 	fmt.Println()
-	printTable(tableRows)
+	printTable(metricsRows)
 }
