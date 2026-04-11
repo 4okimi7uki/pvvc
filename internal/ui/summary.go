@@ -53,7 +53,7 @@ func PrintReport(targetDay time.Time, _pv int64, _totalCost, _totalCostJPY, _rat
 	}
 	summaryRows := []row{
 		{"Period", targetDay.Format("2006/01/02")},
-		{"PV", fmt.Sprintf("%s", pv)},
+		{"PV", pv},
 		{"Rate", fmt.Sprintf("$1 = ¥%s", rate)},
 	}
 
@@ -67,8 +67,8 @@ func PrintReport(targetDay time.Time, _pv int64, _totalCost, _totalCostJPY, _rat
 	fmt.Println()
 	printTable([][]string{
 		{"", "USD", "JPY"},
-		{"Total", fmt.Sprintf("%s", totalCost), fmt.Sprintf("%s", totalCostJPY)},
-		{"/ PV", fmt.Sprintf("%s", costPerPVUSD), fmt.Sprintf("%s", costPerPVJPY)},
+		{"Total", totalCost, totalCostJPY},
+		{"/ PV", costPerPVUSD, costPerPVJPY},
 	})
 
 	fmt.Println(strings.Repeat("─", barWith))
