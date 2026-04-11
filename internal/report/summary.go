@@ -109,21 +109,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport) {
 
 	}
 
-	printSection("Weely Cost")
+	printSection("Metrics")
 	fmt.Println()
 	printTable(tableRows)
 }
-
-// ## Metrics
-
-// | Date  | PV     | Cost (USD) | Cost/PV (USD) | Rate    |
-// |-------|--------|------------|----------------|---------|
-// | 04/04 | 12,450 | 0.0231     | 0.000001856    | ¥149.50 |
-// | 04/05 | 18,200 | 0.0312     | 0.000001714    | ¥149.80 |
-// ...
-
-// Date         time.Time
-// 	PV           int64
-// 	TotalCost    float64
-// 	TotalCostJPY float64
-// 	Rate         float64
