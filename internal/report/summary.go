@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/4okimi7uki/pvvc/internal/ui"
 	"github.com/dustin/go-humanize"
 )
 
@@ -32,7 +33,7 @@ func printTable(rows [][]string) {
 }
 
 func printSection(label string) {
-	line := strings.Repeat("─", barWith-len(label))
+	line := strings.Repeat(ui.MossGray("─"), barWith-len(label))
 	fmt.Printf("\n%s %s\n", label, line)
 }
 
