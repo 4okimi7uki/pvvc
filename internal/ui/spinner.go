@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -16,24 +16,39 @@ func padSuffix(s string, width int) string {
 	return s + strings.Repeat(" ", width-len(s))
 }
 
-func WithSpinner(initialMsg string, fn func(update func(string)) error) error {
+func WithSpinner(initialMsg string, fn func(update func(string), addDone func(string)) error) error {
 	const spinnerSuffixWidth = 30
 	const interval = 140 * time.Millisecond
-	mySet := []string{Lime("˙"), "•", Lime("●"), Lime("•"), "˙"}
-	s := spinner.New(mySet, interval)
+	mySpinner := []string{Lime("˙"), "•", Lime("●"), Lime("•"), "˙"}
+	s := spinner.New(mySpinner, interval)
 	s.Writer = os.Stderr
 	s.Suffix = padSuffix(" "+initialMsg, spinnerSuffixWidth)
 
 	s.Start()
 	defer func() {
-		fmt.Fprint(os.Stderr, "\r\033[K")
+		time.Sleep(600 * time.Millisecond)
 		s.Stop()
 	}()
 
-	update := func(msg string) {
-		s.Suffix = padSuffix(" "+msg, spinnerSuffixWidth)
-		time.Sleep(interval + 10*time.Millisecond)
+	var mu sync.Mutex
+	var doneItems []string
+
+	addDone := func(label string) {
+		mu.Lock()
+		doneItems = append(doneItems, label)
+		suffix := " " + initialMsg + "\n" + strings.Join(doneItems, "\n")
+		mu.Unlock()
+
+		s.Lock()
+		s.Suffix = suffix
+		s.Unlock()
 	}
 
-	return fn(update)
+	update := func(msg string) {
+		s.Lock()
+		s.Suffix = padSuffix(" "+msg, spinnerSuffixWidth)
+		s.Unlock()
+	}
+
+	return fn(update, addDone)
 }
