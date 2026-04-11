@@ -51,7 +51,6 @@ func RunMain(v *viper.Viper) error {
 		if err != nil {
 			return err
 		}
-
 		return nil
 	})
 	if err != nil {
@@ -59,6 +58,5 @@ func RunMain(v *viper.Viper) error {
 	}
 
 	report.PrintSomeDayReports(start, end, reports)
-
 	return nil
 }

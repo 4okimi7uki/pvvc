@@ -35,7 +35,7 @@ func FetchDailyReport(
 			return err
 		}
 		pvs = report.TotalPageViewByDay()
-		addDone(ui.Green("  ✓ ") + "GA4")
+		addDone(ui.Green("  ✔ ") + "GA4")
 
 		return nil
 	})
@@ -52,7 +52,7 @@ func FetchDailyReport(
 		}
 
 		totalCosts = cost.TotalCostByDay()
-		addDone(ui.Green("  ✓ ") + "Vercel")
+		addDone(ui.Green("  ✔ ") + "Vercel")
 
 		return nil
 	})
@@ -66,7 +66,7 @@ func FetchDailyReport(
 			return err
 		}
 
-		addDone(ui.Green("  ✓ ") + "FX")
+		addDone(ui.Green("  ✔ ") + "FX")
 		return nil
 	})
 

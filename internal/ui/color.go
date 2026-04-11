@@ -8,4 +8,5 @@ var (
 	Yellow   = color.RGB(255, 219, 76).SprintfFunc()
 	Mastered = color.RGB(208, 175, 76).SprintfFunc()
 	Lime     = color.RGB(37, 198, 168).SprintfFunc()
+	MossGray = color.RGB(96, 94, 82).SprintfFunc()
 )
