@@ -7,10 +7,10 @@ import (
 
 	"cloud.google.com/go/auth/credentials"
 	"github.com/4okimi7uki/pvvc/internal/ai/gemini"
-	"github.com/4okimi7uki/pvvc/internal/ga4"
+	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
+	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/ui"
-	"github.com/4okimi7uki/pvvc/internal/vercel"
 	"github.com/spf13/viper"
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
