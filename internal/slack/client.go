@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/4okimi7uki/pvvc/internal/report"
+	"github.com/4okimi7uki/pvvc/internal/retry"
 )
 
 type Client struct {
@@ -93,8 +94,12 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
+	var resp *http.Response
+	var e error
+	if err := retry.Do(ctx, 3, func() error {
+		resp, e = c.httpClient.Do(req)
+		return e
+	}); err != nil {
 		return fmt.Errorf("slack: request failed %w", err)
 	}
 	defer func() {
