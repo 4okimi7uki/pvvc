@@ -43,12 +43,14 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport) (str
 func buildPrompt(reports []report.DailyReport) string {
 	var sb strings.Builder
 
-	sb.WriteString("Slackの Block Kit (JSON形式) で作成してください。セクション、区切り線（divider）、ボタンなどを含めて、視認性の高いレイアウトにしてください。\n")
-	// sb.WriteString("'*'は、見ずらいのであまり使用しないでください。箇条書きしたい時は'-'を使用してください。\n")
-	sb.WriteString("以下はWebサービスの直近のPV数とVercelのホスティングコストのデータです。\n")
+	// sb.WriteString("Slackの Block Kit (JSON形式) で作成してください。セクション、区切り線（divider）、ボタンなどを含めて、視認性の高いレイアウトにしてください。\n")
+	sb.WriteString("'*'は、見ずらいのであまり使用しないでください。視認性の高いレイアウトにしてください。\n")
+	sb.WriteString("以下はゴルフメディアサイト：ALBA net(https://www.alba.co.jp/)の直近のPV数とVercelのホスティングコストのデータです。\n")
+	sb.WriteString("昨日のデータの分析を主軸にしてください。\n\n")
 	sb.WriteString("このデータをもとに、トレンドや気になる点を簡潔に分析してください。\n\n")
 	sb.WriteString("Date, PV, Cost(USD), Cost(JPY), Rate\n")
 	sb.WriteString("先週と比べて今週はどういう傾向にあるか、考慮してください。\n\n")
+	sb.WriteString("分析内容のみを出力してください。\n\n")
 
 	for _, r := range reports {
 		sb.WriteString(fmt.Sprintf("%s, %d, %.4f, %.2f, %.2f\n",
