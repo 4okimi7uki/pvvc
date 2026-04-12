@@ -32,7 +32,7 @@ func printTable(rows [][]string) {
 	fmt.Println()
 }
 
-func printSection(label string) {
+func PrintSection(label string) {
 	line := strings.Repeat(ui.MossGray("─"), barWith-len(label))
 	fmt.Printf("\n%s %s\n", label, line)
 }
@@ -60,13 +60,13 @@ func PrintOneDayReport(r *DailyReport) {
 		{"Rate", fmt.Sprintf("$1 = ¥%s", rate)},
 	}
 
-	printSection("Summary")
+	PrintSection("Summary")
 	fmt.Println()
 	for _, s := range summaryRows {
 		fmt.Printf(" %-8s %s\n", s.label, s.value)
 	}
 
-	printSection("Cost")
+	PrintSection("Cost")
 	fmt.Println()
 	printTable([][]string{
 		{"", "USD", "JPY"},
@@ -82,7 +82,7 @@ type row struct {
 	value string
 }
 
-func PrintSomeDayReports(start, end time.Time, reports []DailyReport) {
+func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) {
 	var allPv int64
 	var allCost float64
 
@@ -111,13 +111,20 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport) {
 		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}
-	printSection("Summary")
+	PrintSection("Summary")
 	fmt.Println()
 	for _, s := range summaryRows {
 		fmt.Printf(" %-10s %s\n", s.label, s.value)
 	}
 
-	printSection("Metrics")
+	PrintSection("Metrics")
 	fmt.Println()
 	printTable(metricsRows)
+
+	if aiResponse != "" {
+		PrintSection("AI Analitics")
+		fmt.Println()
+		fmt.Println(aiResponse)
+	}
+
 }
