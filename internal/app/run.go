@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/auth/credentials"
+	"github.com/4okimi7uki/pvvc/internal/ai/gemini"
 	"github.com/4okimi7uki/pvvc/internal/ga4"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/ui"
@@ -14,11 +15,8 @@ import (
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
 
-func RunMain(v *viper.Viper) error {
+func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]report.DailyReport, error) {
 	ui.PrintLogo()
-
-	end := time.Now()
-	start := end.AddDate(0, 0, -14)
 
 	propertyID := v.GetString("ga4.property_id")
 	jsonStr := v.GetString("ga4.credential")
@@ -28,13 +26,12 @@ func RunMain(v *viper.Viper) error {
 		Scopes:          []string{analyticsdata.AnalyticsReadonlyScope},
 	})
 	if err != nil {
-		return fmt.Errorf("load ga4 credentials: %w", err)
+		return []report.DailyReport{}, fmt.Errorf("load ga4 credentials: %w", err)
 	}
 
-	ctx := context.Background()
 	ga4Client, err := ga4.New(ctx, propertyID, creds)
 	if err != nil {
-		return err
+		return []report.DailyReport{}, err
 	}
 
 	vercelClient, err := vercel.New(
@@ -42,7 +39,7 @@ func RunMain(v *viper.Viper) error {
 		v.GetString("vercel.team_id"),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create vercel client: %w", err)
+		return []report.DailyReport{}, fmt.Errorf("failed to create vercel client: %w", err)
 	}
 
 	var reports []report.DailyReport
@@ -54,9 +51,25 @@ func RunMain(v *viper.Viper) error {
 		return nil
 	})
 	if err != nil {
-		return err
+		return []report.DailyReport{}, err
 	}
 
-	report.PrintSomeDayReports(start, end, reports)
-	return nil
+	return reports, nil
+}
+
+func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyReport) (string, error) {
+	var analysisResult string
+	geminiKey := v.GetString("ai.gemini_key")
+	if geminiKey != "" {
+		aiClient := gemini.New(geminiKey)
+		err := ui.WithSpinner("Analyzing...", func(update func(string), addDone func(string)) error {
+			var err error
+			analysisResult, err = aiClient.Analyze(ctx, reports)
+			return err
+		})
+		if err != nil {
+			return "", fmt.Errorf("ai analysis: %w", err)
+		}
+	}
+	return analysisResult, nil
 }
