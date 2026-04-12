@@ -16,8 +16,6 @@ import (
 )
 
 func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]report.DailyReport, error) {
-	ui.PrintLogo()
-
 	propertyID := v.GetString("ga4.property_id")
 	jsonStr := v.GetString("ga4.credential")
 
@@ -58,6 +56,7 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]repor
 }
 
 func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyReport) (string, error) {
+	// TODO:　AIを外から切り替えられるようにする
 	var analysisResult string
 	geminiKey := v.GetString("ai.gemini_key")
 	if geminiKey != "" {
