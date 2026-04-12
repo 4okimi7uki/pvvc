@@ -30,6 +30,9 @@ var analyzeCmd = &cobra.Command{
 
 		// ai analyze
 		analysisResult, err := app.RunAnalysis(cfg, ctx, rep)
+		if err != nil {
+			return err
+		}
 		report.PrintSomeDayReports(start, end, rep, analysisResult)
 
 		if notify {

@@ -82,6 +82,9 @@ func (c *Client) Send(ctx context.Context, text string) error {
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.webhookURL, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("slack: failed to create request: %w", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -89,7 +92,7 @@ func (c *Client) Send(ctx context.Context, text string) error {
 		return fmt.Errorf("slack: request failed %w", err)
 	}
 	defer func() {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode != http.StatusOK {
