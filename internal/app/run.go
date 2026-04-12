@@ -17,8 +17,8 @@ import (
 func RunMain(v *viper.Viper) error {
 	ui.PrintLogo()
 
-	end := time.Now().AddDate(0, 0, -2)
-	start := end.AddDate(0, 0, -6)
+	end := time.Now()
+	start := end.AddDate(0, 0, -14)
 
 	propertyID := v.GetString("ga4.property_id")
 	jsonStr := v.GetString("ga4.credential")

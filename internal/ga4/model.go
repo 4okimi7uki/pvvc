@@ -1,7 +1,7 @@
 package ga4
 
 type DailyPageViews struct {
-	PagePath string
+	PagePath string // Note: 一旦空の値が入るようにしている
 	Views    int64
 	Date     string
 }

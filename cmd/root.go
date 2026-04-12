@@ -3,7 +3,6 @@ package cmd
 import (
 	"os"
 
-	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -13,15 +12,10 @@ var cfg = config.New()
 var rootCmd = &cobra.Command{
 	Use:          "pvvc",
 	SilenceUsage: true,
-	Short:        "aaaa",
-	Long:         "long.",
+	Short:        "Analyze Vercel cost against GA4 pageviews",
+	Long:         "pvvc fetches GA4 pageviews, Vercel costs, and FX rates to help you report on and analyze the relationship between traffic and hosting cost.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-
-		if err := app.RunMain(cfg); err != nil {
-			return err
-		}
-
-		return nil
+		return cmd.Help()
 	},
 }
 
