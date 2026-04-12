@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	"github.com/4okimi7uki/pvvc/internal/report"
 )
@@ -28,33 +30,34 @@ func New(webhookURL string) (*Client, error) {
 type Text struct {
 	Type  string `json:"type"`
 	Text  string `json:"text"`
-	Emoji bool   `json:"emoji"`
-}
-
-type RichTextElement struct {
-	Type     string            `json:"type"`
-	Text     string            `json:"text,omitempty"`
-	Elements []RichTextElement `json:"elements,omitempty"`
+	Emoji bool   `json:"emoji,omitempty"`
 }
 
 type Block struct {
-	Type     string            `json:"type"`
-	Text     *Text             `json:"text,omitempty"`
-	Elements []RichTextElement `json:"elements,omitempty"`
+	Type string `json:"type"`
+	Text *Text  `json:"text,omitempty"`
 }
 
 type blockPayload struct {
 	Blocks []Block `json:"blocks"`
 }
 
-func (c *Client) Send(ctx context.Context, text string) error {
+func (c *Client) Send(ctx context.Context, text string, summary []report.Row) error {
+	var sb strings.Builder
+	sb.WriteString("*Summary*\n")
+
+	for _, row := range summary {
+		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
+	}
+	summaryText := sb.String()
+
 	body, err := json.Marshal(blockPayload{
 		Blocks: []Block{
 			{
 				Type: "header",
 				Text: &Text{
 					Type:  "plain_text",
-					Text:  "📊 P.V.V.C. daily report",
+					Text:  "📊 P.V.V.C. Daily report",
 					Emoji: true,
 				},
 			},
@@ -62,17 +65,20 @@ func (c *Client) Send(ctx context.Context, text string) error {
 				Type: "divider",
 			},
 			{
-				Type: "rich_text",
-				Elements: []RichTextElement{
-					{
-						Type: "rich_text_section",
-						Elements: []RichTextElement{
-							{
-								Type: "text",
-								Text: text,
-							},
-						},
-					},
+				Type: "section",
+				Text: &Text{
+					Type: "mrkdwn",
+					Text: summaryText,
+				},
+			},
+			{
+				Type: "divider",
+			},
+			{
+				Type: "section",
+				Text: &Text{
+					Type: "mrkdwn",
+					Text: truncate(text, 3000),
 				},
 			},
 		},
@@ -96,7 +102,8 @@ func (c *Client) Send(ctx context.Context, text string) error {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("slack: unexpected status %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("slack: unexpected status %d: %s", resp.StatusCode, string(body))
 	}
 	report.PrintSection("Notification")
 	fmt.Println()
@@ -104,4 +111,12 @@ func (c *Client) Send(ctx context.Context, text string) error {
 	fmt.Println()
 
 	return nil
+}
+
+func truncate(s string, max int) string {
+	runes := []rune(s)
+	if len(runes) <= max {
+		return s
+	}
+	return string(runes[:max])
 }

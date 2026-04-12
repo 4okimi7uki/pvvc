@@ -77,12 +77,12 @@ func PrintOneDayReport(r *DailyReport) {
 	fmt.Println(strings.Repeat("─", barWith))
 }
 
-type row struct {
-	label string
-	value string
+type Row struct {
+	Label string
+	Value string
 }
 
-func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) {
+func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) []Row {
 	var allPv int64
 	var allCost float64
 
@@ -106,15 +106,15 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	}
 
-	summaryRows := []row{
-		{"Period", fmt.Sprintf("%s ~ %s", start.Format("2006/01/02"), end.Format("2006/01/02"))},
+	summaryRows := []Row{
+		{"Period", fmt.Sprintf("%s → %s", start.Format("2006/01/02"), end.Format("2006/01/02"))},
 		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}
 	PrintSection("Summary")
 	fmt.Println()
 	for _, s := range summaryRows {
-		fmt.Printf(" %-10s %s\n", s.label, s.value)
+		fmt.Printf(" %-10s %s\n", s.Label, s.Value)
 	}
 
 	PrintSection("Metrics")
@@ -127,4 +127,5 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 		fmt.Println(aiResponse)
 	}
 
+	return summaryRows
 }

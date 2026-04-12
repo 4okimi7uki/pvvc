@@ -7,6 +7,7 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/slack"
+	"github.com/4okimi7uki/pvvc/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -22,6 +23,8 @@ var analyzeCmd = &cobra.Command{
 		start := end.AddDate(0, 0, -14)
 		ctx := context.Background()
 
+		ui.PrintLogo()
+
 		// build report
 		rep, err := app.RunMain(cfg, ctx, start, end)
 		if err != nil {
@@ -33,14 +36,14 @@ var analyzeCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		report.PrintSomeDayReports(start, end, rep, analysisResult)
+		summary := report.PrintSomeDayReports(start, end, rep, analysisResult)
 
 		if notify {
 			slackClient, err := slack.New(cfg.GetString("slack.webhook_url"))
 			if err != nil {
 				return err
 			}
-			err = slackClient.Send(ctx, analysisResult)
+			err = slackClient.Send(ctx, analysisResult, summary)
 
 			if err != nil {
 				return err
