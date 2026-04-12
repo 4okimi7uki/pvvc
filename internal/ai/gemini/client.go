@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/4okimi7uki/pvvc/internal/report"
+	"github.com/4okimi7uki/pvvc/internal/retry"
 	"google.golang.org/genai"
 )
 
@@ -27,14 +28,18 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport) (str
 
 	prompt := buildPrompt(reports)
 
-	result, err := client.Models.GenerateContent(
-		ctx,
-		"gemini-3.1-flash-lite-preview",
-		genai.Text(prompt),
-		nil,
-	)
-	if err != nil {
-		return "", fmt.Errorf("generate content: %w", err)
+	var result *genai.GenerateContentResponse
+	if err := retry.Do(ctx, 3, func() error {
+		var e error
+		result, e = client.Models.GenerateContent(
+			ctx,
+			"gemini-3.1-flash-lite-preview",
+			genai.Text(prompt),
+			nil,
+		)
+		return e
+	}); err != nil {
+		return "", fmt.Errorf("gemini: generate content: %w", err)
 	}
 
 	return result.Text(), nil
