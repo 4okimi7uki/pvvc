@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/4okimi7uki/pvvc/internal/fx"
-	"github.com/4okimi7uki/pvvc/internal/ga4"
+	"github.com/4okimi7uki/pvvc/internal/datasource/fx"
+	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
+	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/ui"
-	"github.com/4okimi7uki/pvvc/internal/vercel"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -25,7 +25,6 @@ func FetchDailyReport(
 	var rates map[string]float64
 
 	eg, ctx := errgroup.WithContext(ctx)
-	// end := start.AddDate(0, 0, 1)
 
 	// GA4 PV
 	eg.Go(func() error {
