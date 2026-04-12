@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
@@ -20,9 +19,8 @@ func parseReport(propertyID string, resp *analyticsdata.RunReportResponse) (*Rep
 			continue
 		}
 
-		_date := row.DimensionValues[0].Value
+		date := row.DimensionValues[0].Value
 		// pagePath := row.DimensionValues[1].Value
-		date, err := time.Parse("20060102", _date)
 
 		views, err := strconv.ParseInt(row.MetricValues[0].Value, 10, 64)
 		if err != nil {
