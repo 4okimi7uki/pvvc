@@ -10,3 +10,6 @@ var (
 	Lime     = color.RGB(37, 198, 168).SprintfFunc()
 	MossGray = color.RGB(96, 94, 82).SprintfFunc()
 )
+var (
+	Bold = color.New(color.Bold).SprintFunc()
+)
