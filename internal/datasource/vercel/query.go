@@ -45,7 +45,7 @@ func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
 	for dec.More() {
 		var c BillingCharge
 		if err := dec.Decode(&c); err != nil {
-			return nil, fmt.Errorf("vercel: failed to decord: %w", err)
+			return nil, fmt.Errorf("vercel: failed to decode: %w", err)
 		}
 		charges = append(charges, c)
 	}
