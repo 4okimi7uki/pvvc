@@ -15,7 +15,7 @@ type Client struct {
 
 func New(token, teamID string) (*Client, error) {
 	if token == "" {
-		return nil, fmt.Errorf("vercel: tokein id required")
+		return nil, fmt.Errorf("vercel: token id required")
 	}
 	return &Client{
 		token:      token,
