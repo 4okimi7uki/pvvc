@@ -55,7 +55,7 @@ func PrintOneDayReport(r *DailyReport) {
 		value string
 	}
 	summaryRows := []row{
-		{"Period", targetDay.Format("2006/01/02")},
+		{"Period", targetDay.AddDate(0, 0, -1).Format("2006/01/02")},
 		{"PV", pv},
 		{"Rate", fmt.Sprintf("$1 = ¥%s", rate)},
 	}
@@ -107,7 +107,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	}
 
 	summaryRows := []Row{
-		{"Period", fmt.Sprintf("%s → %s", start.Format("2006/01/02"), end.Format("2006/01/02"))},
+		{"Period", fmt.Sprintf("%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))},
 		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}
