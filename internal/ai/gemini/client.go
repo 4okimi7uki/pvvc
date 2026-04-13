@@ -48,27 +48,39 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport) (str
 func buildPrompt(reports []report.DailyReport) string {
 	var sb strings.Builder
 
-	// sb.WriteString("Slackの Block Kit (JSON形式) で作成してください。セクション、区切り線（divider）、ボタンなどを含めて、視認性の高いレイアウトにしてください。\n")
-	// sb.WriteString("'*'は、見ずらいのであまり使用しないでください。視認性の高いレイアウトにしてください。\n")
-	// sb.WriteString("以下はゴルフメディアサイトの直近のPV数とVercelのホスティングコストのデータです。\n")
-	// sb.WriteString("昨日のデータの分析を主軸にしてください。\n\n")
-	// sb.WriteString("このデータをもとに、トレンドや気になる点を簡潔に分析してください。\n\n")
-	// sb.WriteString("Date, PV, Cost(USD), Cost(JPY), USD/JPY Rate\n")
-	// sb.WriteString("先週と比べて今週はどういう傾向にあるか、考慮してください。\n\n")
-	// sb.WriteString("毎週火曜日14時に、最新ソースを本番環境（このWebサイト）へ反映します。水曜・木曜に関して、リリースの影響はありそうか、分析してください。\n\n")
-	// sb.WriteString("分析内容のみを出力してください。\n\n")
-	//
+	newsUrlList := []string{
+		"https://www.pgatour.com/news",
+		"https://www.lpga.com/news",
+		"https://www.livgolf.com/news",
+		"https://www.lpga.or.jp/news/news_and_topics/",
+		"https://www.alba.co.jp/tour/category/next/schedule/",
+		"https://golf.com/",
+		"https://news.golfdigest.co.jp/search/",
+		"https://www.alba.co.jp/",
+	}
+
 	sb.WriteString("# 役割\n")
 	sb.WriteString("あなたは、ゴルフメディア「ALBA Net」のシニアデータアナリストです。\n")
-	sb.WriteString("GA4とVercelのデータを統合し、多忙な担当者が10秒で把握できる「超要約レポート」を作成してください。\n\n")
+	sb.WriteString("GA4とVercelのデータおよびゴルフ大会情報・ニュースを統合し、多忙な担当者が10秒で把握できる「超要約レポート」を作成してください。\n\n")
+
+	sb.WriteString("# 前提・制約\n")
+	sb.WriteString("- 現時点で提供できるデータはサイト全体のPV合計とVercelの総コストのみです。\n")
+	sb.WriteString("- ページ別・サービス別の詳細データはないため、技術的な原因の断定は行わないでください。\n")
+	sb.WriteString("- 分析は「トレンドの把握」と「外部要因との相関」に絞ってください。\n\n")
+
+	sb.WriteString("# サイト・インフラ特性\n")
+	sb.WriteString("- ALBA Netはゴルフメディアサイトで、大会開催中は速報・スコアページへのアクセスが集中します。\n")
+	sb.WriteString("- Vercelエッジキャッシュが有効なため、同一URLへの繰り返しアクセスはコストにほぼ影響しません。\n")
+	sb.WriteString("- 【重要】集中アクセス時はキャッシュが効きコスト効率が良く、大会終了後の分散アクセス時はコスト効率が悪化します。\n")
+	sb.WriteString("- 「PVが減ってもコストが上がる」場合は、アクセスが集中から分散に変化した可能性を優先的に考えてください。\n\n")
 
 	sb.WriteString("# 外部背景\n")
-	sb.WriteString("- 毎週火曜14:00頃リリース。水・木はその影響（コスト・PV変動）を注視。\n")
-	sb.WriteString("- ゴルフ大会スケジュールや外部スポーツ（大谷選手等）のイベント性を考慮。\n\n")
+	sb.WriteString("- 毎週火曜14:00頃にサイトリリースがあり、水・木はその影響でPV・コストが変動しやすい。\n")
+	sb.WriteString("- ゴルフ大会のスケジュールや注目選手の動向がPVに直結します。\n\n")
 
 	sb.WriteString("# 分析対象データ\n")
+	sb.WriteString("## Vercel & GA4 集計データ\n")
 	sb.WriteString("Date, PV, Cost(USD), Cost(JPY), USD/JPY Rate\n")
-	// ここに取得したデータを流し込む
 	for _, r := range reports {
 		fmt.Fprintf(&sb, "%s, %d, %.4f, %.2f, %.2f\n",
 			r.Date.Format("2006/01/02"),
@@ -78,21 +90,54 @@ func buildPrompt(reports []report.DailyReport) string {
 			r.Rate,
 		)
 	}
-	sb.WriteString("# 依頼事項\n")
-	sb.WriteString("各セクションの本文は必ず【1行】で記述してください。\n")
-	sb.WriteString("'*'記号は視認性を下げるため、リストの箇条書きや強調には使用しないでください。\n")
-	sb.WriteString("表形式や適切な改行、【】などの記号を活用し、一目で数値の変化がわかるレイアウトにしてください。\n\n")
+	sb.WriteString("\n")
 
-	sb.WriteString("# 出力形式（このフォーマットを厳守）\n")
+	sb.WriteString("## ゴルフニュースソース\n")
+	sb.WriteString("以下のURLから最新情報を確認し、PV増減の背景（大会の有無・注目選手の結果等）を把握してください。\n")
+	for _, news := range newsUrlList {
+		fmt.Fprintf(&sb, " - %s\n", news)
+	}
+	sb.WriteString("\n")
 
-	sb.WriteString("### 昨日の分析結果\n")
-	sb.WriteString("【最新日データ】PV 000（前日比±0%）、コスト $000（前日比±0%）。効率性は改善/悪化。\n\n")
+	sb.WriteString("# 出力ルール\n")
+	sb.WriteString("1. 各セクションの本文は【1〜2行】で簡潔に記述してください。\n")
+	sb.WriteString("2. '*' 記号は使用禁止。代わりに【】や絵文字（📈📉⚠️⛳️）を活用してください。\n")
+	sb.WriteString("3. Markdownテーブル（|---|）は絶対に使用しないでください。\n")
+	sb.WriteString("4. データ表はコードブロック（```）内にスペースで列を揃えた等幅テキストで出力してください。\n\n")
 
-	sb.WriteString("### 今週のトレンド\n")
-	sb.WriteString("【推移】〇月〇日のピーク以降、PVは〇〇の影響で微減。コスト単価は安定/不安定。\n\n")
+	sb.WriteString("# 出力形式\n\n")
 
-	sb.WriteString("### リリース影響・異常検知\n")
-	sb.WriteString("【検証】火曜リリースの影響は見られず正常。もしくは、〇曜日のコスト急増につき要因調査を推奨。\n")
+	sb.WriteString("### 昨日（昨日の日付）の分析結果\n")
+	sb.WriteString("（最新日のPV・コストを前日比で簡潔に評価してください）\n\n")
+
+	sb.WriteString("### 直近の推移データ\n")
+	sb.WriteString("```\n")
+	sb.WriteString("日付        PV          コスト     \n")
+	sb.WriteString("04/11(土)   978,567     $197.50    \n")
+	sb.WriteString("```\n\n")
+
+	sb.WriteString("### 今週のトレンドとニュース相関\n")
+	sb.WriteString("（ゴルフ大会・外部イベントとPV増減の相関を中心に分析してください）\n\n")
+
+	if detectAnomaly(reports) {
+		sb.WriteString("### ⚠️ 異常検知\n")
+		sb.WriteString("直近のコストに通常比1.3倍以上の急増が検出されています。\n")
+		sb.WriteString("現時点のデータでは技術的原因の特定は困難ですが、気になる点があれば簡潔に記述してください。\n\n")
+	}
 
 	return sb.String()
+}
+
+func detectAnomaly(reports []report.DailyReport) bool {
+	if len(reports) < 2 {
+		return false
+	}
+	// 直近2日のコスト比較で1.3倍以上なら異常
+	const anomalyCriteria = 1.3
+	latest := reports[len(reports)-1]
+	prev := reports[len(reports)-2]
+	if prev.TotalCost == 0 {
+		return false
+	}
+	return latest.TotalCost/prev.TotalCost >= anomalyCriteria
 }
