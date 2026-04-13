@@ -11,6 +11,7 @@ import (
 
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
+	"github.com/spf13/viper"
 )
 
 type Client struct {
@@ -28,22 +29,23 @@ func New(webhookURL string) (*Client, error) {
 	}, nil
 }
 
-type Text struct {
+type TextObject struct {
 	Type  string `json:"type"`
 	Text  string `json:"text"`
 	Emoji bool   `json:"emoji,omitempty"`
 }
 
 type Block struct {
-	Type string `json:"type"`
-	Text *Text  `json:"text,omitempty"`
+	Type     string       `json:"type"`
+	Text     *TextObject  `json:"text,omitempty"`
+	Elements []TextObject `json:"elements,omitempty"`
 }
 
 type blockPayload struct {
 	Blocks []Block `json:"blocks"`
 }
 
-func (c *Client) Send(ctx context.Context, text string, summary []report.Row) error {
+func (c *Client) Send(v *viper.Viper, ctx context.Context, text string, summary []report.Row) error {
 	var sb strings.Builder
 	sb.WriteString("*Summary*\n")
 
@@ -51,15 +53,26 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
 	}
 	summaryText := sb.String()
+	headingTitle := fmt.Sprintf("📊 %s Daily Report", v.GetString("service.name"))
 
 	body, err := json.Marshal(blockPayload{
 		Blocks: []Block{
 			{
 				Type: "header",
-				Text: &Text{
+				Text: &TextObject{
 					Type:  "plain_text",
-					Text:  "📊 P.V.V.C. Daily report",
+					Text:  headingTitle,
 					Emoji: true,
+				},
+			},
+			{
+				Type: "context",
+				Elements: []TextObject{
+					{
+						Type:  "plain_text",
+						Text:  "Powered by P.V.V.C.",
+						Emoji: true,
+					},
 				},
 			},
 			{
@@ -67,7 +80,7 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 			},
 			{
 				Type: "section",
-				Text: &Text{
+				Text: &TextObject{
 					Type: "mrkdwn",
 					Text: summaryText,
 				},
@@ -77,7 +90,7 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 			},
 			{
 				Type: "section",
-				Text: &Text{
+				Text: &TextObject{
 					Type: "mrkdwn",
 					Text: truncate(text, 3000),
 				},
