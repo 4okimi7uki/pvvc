@@ -138,7 +138,7 @@ pvvc analyze --notify
 ## Example Output
 
 ```text
-Date         PV       Cost(USD)    Cost(JPY)    Cost/PV(USD)    Cost/PV(JPY)    USD/JPY
+Date         PV       Cost(USD)   Cost(JPY)   Cost/PV(USD)   Cost/PV(JPY)   USD/JPY
 2026-04-01   18,234   12.40       1886.12     0.00068        0.1034         152.11
 2026-04-02   17,620   11.98       1821.76     0.00068        0.1034         152.07
 2026-04-03   19,402   13.21       2008.57     0.00068        0.1035         152.05
