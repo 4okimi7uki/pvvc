@@ -43,7 +43,7 @@ var analyzeCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			err = slackClient.Send(ctx, analysisResult, summary)
+			err = slackClient.Send(cfg, ctx, analysisResult, summary)
 
 			if err != nil {
 				return err

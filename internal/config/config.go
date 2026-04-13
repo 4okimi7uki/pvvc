@@ -17,6 +17,7 @@ func New() *viper.Viper {
 	_ = v.BindEnv("ga4.credential", "GOOGLE_ANALYTICS_CREDENTIAL")
 	_ = v.BindEnv("ai.gemini_key", "GEMINI_API_KEY")
 	_ = v.BindEnv("slack.webhook_url", "SLACK_WEBHOOK_URL")
+	_ = v.BindEnv("service.name", "TARGET_WEBSITE_NAME")
 
 	return v
 }
