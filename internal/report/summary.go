@@ -87,9 +87,8 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	var allCost float64
 
 	var metricsRows [][]string
-	metricsRows = append(metricsRows, []string{"Date", "PV", "Cost (USD)", "Cost (JPY)", "Cost/PV (USD)", "Cost/PV (JPY)", "Rate"})
+	metricsRows = append(metricsRows, []string{"Date", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV(JPY)", "USD/JPY"})
 	for _, r := range reports {
-		_costPerPVUSD := r.TotalCost / float64(r.PV)
 		_costPerPVJPY := r.TotalCostJPY / float64(r.PV)
 		allPv += r.PV
 		allCost += r.TotalCost
@@ -99,7 +98,6 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 			humanize.Comma(r.PV),
 			humanize.CommafWithDigits(r.TotalCost, 4),
 			humanize.CommafWithDigits(r.TotalCostJPY, 2),
-			humanize.CommafWithDigits(_costPerPVUSD, 6),
 			humanize.CommafWithDigits(_costPerPVJPY, 4),
 			humanize.CommafWithDigits(r.Rate, 2),
 		})
@@ -122,7 +120,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	printTable(metricsRows)
 
 	if aiResponse != "" {
-		PrintSection("AI Analitics")
+		PrintSection("AI Analytics")
 		fmt.Println()
 		fmt.Println(aiResponse)
 	}
