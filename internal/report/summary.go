@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -42,7 +43,7 @@ type Row struct {
 	Value string
 }
 
-func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) []Row {
+func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) {
 	var allPv int64
 	var allCost float64
 
@@ -84,6 +85,53 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 		fmt.Println()
 		fmt.Println(aiResponse)
 	}
+}
 
-	return summaryRows
+func sameDay(a, b time.Time) bool {
+	ay, am, ad := a.Date()
+	by, bm, bd := b.Date()
+	return ay == by && am == bm && ad == bd
+}
+
+func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
+	fmt.Println(reports)
+	otherReports := slices.DeleteFunc(slices.Clone(reports), func(item DailyReport) bool {
+		return sameDay(item.Date, end)
+	})
+
+	latestIdx := slices.IndexFunc(reports, func(item DailyReport) bool {
+		return sameDay(item.Date, end)
+	})
+	if latestIdx == -1 || len(otherReports) == 0 {
+		return nil
+	}
+	latest := reports[latestIdx]
+
+	var sumPV int64
+	var sumCost float64
+	for _, r := range otherReports {
+		sumPV += r.PV
+		sumCost += r.TotalCost
+	}
+	avgPV := float64(sumPV) / float64(len(otherReports))
+	avgCost := sumCost / float64(len(otherReports))
+
+	pvChangePct := (float64(latest.PV) - avgPV) / avgPV * 100
+	costChangePct := (latest.TotalCost - avgCost) / avgCost * 100
+
+	formatPct := func(pct float64) string {
+		if pct >= 0 {
+			return fmt.Sprintf("+%.1f%%", pct)
+		}
+		return fmt.Sprintf("%.1f%%", pct)
+	}
+
+	costPerPV := latest.TotalCost / float64(latest.PV)
+
+	return []Row{
+		{"Date", latest.Date.Format("2006/01/02 (月)")},
+		{"PV", fmt.Sprintf("%s ・・・(%s vs 7d avg)", humanize.Comma(latest.PV), formatPct(pvChangePct))},
+		{"Cost", fmt.Sprintf("$%s ・・・(%s vs 7d avg)", humanize.CommafWithDigits(latest.TotalCost, 2), formatPct(costChangePct))},
+		{"Cost/PV", fmt.Sprintf("$%s", humanize.CommafWithDigits(costPerPV, 6))},
+	}
 }
