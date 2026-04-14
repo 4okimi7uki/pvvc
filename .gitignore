@@ -2,3 +2,7 @@ service-account.json
 .env
 *.env
 dist/
+
+**/log.*
+*.log
+*.log.*
