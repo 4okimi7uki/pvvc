@@ -2,11 +2,13 @@ package gemini
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
+	"google.golang.org/api/googleapi"
 	"google.golang.org/genai"
 )
 
@@ -18,7 +20,7 @@ func New(apiKey string) *Client {
 	return &Client{apiKey: apiKey}
 }
 
-func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport) (string, error) {
+func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, update func(string)) (string, error) {
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey: c.apiKey,
 	})
@@ -28,21 +30,47 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport) (str
 
 	prompt := buildPrompt(reports)
 
-	var result *genai.GenerateContentResponse
-	if err := retry.Do(ctx, 5, func() error {
-		var e error
-		result, e = client.Models.GenerateContent(
-			ctx,
-			"gemini-3-flash-preview",
-			genai.Text(prompt),
-			nil,
-		)
-		return e
-	}); err != nil {
-		return "", fmt.Errorf("gemini: generate content: %w", err)
+	// Note: 新しいモデルが出た際はここを更新
+	geminiModels := []string{
+		"gemini-3-flash-preview",
+		"gemini-3.1-flash-lite-preview",
 	}
 
-	return result.Text(), nil
+	update("Gemini Thinking...")
+	var lastErr error
+	var result *genai.GenerateContentResponse
+	for i, model := range geminiModels {
+		if i > 0 {
+			update(fmt.Sprintf("Taking longer than usual... So, Change model: %s", model))
+		}
+		retryErr := retry.Do(ctx, 3, func() error {
+			var e error
+			result, e = client.Models.GenerateContent(
+				ctx,
+				model,
+				genai.Text(prompt),
+				nil,
+			)
+			return e
+		})
+		if retryErr == nil {
+			return result.Text(), nil
+		}
+		if !isRateLimitError(retryErr) {
+			return "", fmt.Errorf("gemini: generate content: %w", retryErr)
+		}
+		lastErr = retryErr
+	}
+
+	return "", fmt.Errorf("gemini: all models exhausted: %w", lastErr)
+}
+
+func isRateLimitError(err error) bool {
+	var apiErr *googleapi.Error
+	if errors.As(err, &apiErr) {
+		return apiErr.Code == 429 || apiErr.Code == 503
+	}
+	return false
 }
 
 func buildPrompt(reports []report.DailyReport) string {
