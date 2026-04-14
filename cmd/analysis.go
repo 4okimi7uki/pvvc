@@ -33,11 +33,11 @@ var analyzeCmd = &cobra.Command{
 			summary := report.PrintSomeDayReports(from, to, rep, analysisResult)
 
 			if notify {
-				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"))
+				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"), cfg.GetString("service.name"))
 				if err != nil {
 					return err
 				}
-				err = slackClient.Send(cfg, ctx, analysisResult, summary)
+				err = slackClient.Send(ctx, analysisResult, summary)
 
 				if err != nil {
 					return err

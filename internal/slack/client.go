@@ -11,21 +11,22 @@ import (
 
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
-	"github.com/spf13/viper"
 )
 
 type Client struct {
-	webhookURL string
-	httpClient *http.Client
+	webhookURL  string
+	httpClient  *http.Client
+	serviceName string
 }
 
-func New(webhookURL string) (*Client, error) {
+func New(webhookURL string, serviceName string) (*Client, error) {
 	if webhookURL == "" {
 		return nil, fmt.Errorf("slack: webhook url is required")
 	}
 	return &Client{
-		webhookURL: webhookURL,
-		httpClient: &http.Client{},
+		webhookURL:  webhookURL,
+		httpClient:  &http.Client{},
+		serviceName: serviceName,
 	}, nil
 }
 
@@ -45,7 +46,7 @@ type blockPayload struct {
 	Blocks []Block `json:"blocks"`
 }
 
-func (c *Client) Send(v *viper.Viper, ctx context.Context, text string, summary []report.Row) error {
+func (c *Client) Send(ctx context.Context, text string, summary []report.Row) error {
 	var sb strings.Builder
 	sb.WriteString("*Summary*\n")
 
@@ -53,7 +54,7 @@ func (c *Client) Send(v *viper.Viper, ctx context.Context, text string, summary 
 		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
 	}
 	summaryText := sb.String()
-	headingTitle := fmt.Sprintf("📊 %s Daily Report", v.GetString("service.name"))
+	headingTitle := fmt.Sprintf("📊 %s Daily Report", c.serviceName)
 
 	body, err := json.Marshal(blockPayload{
 		Blocks: []Block{
