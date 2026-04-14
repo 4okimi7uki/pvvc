@@ -37,46 +37,6 @@ func PrintSection(label string) {
 	fmt.Printf("\n%s %s\n", label, line)
 }
 
-func PrintOneDayReport(r *DailyReport) {
-	_costPerPVUSD := r.TotalCost / float64(r.PV)
-	_costPerPVJPY := r.TotalCostJPY / float64(r.PV)
-
-	pv := humanize.Comma(r.PV)
-	totalCost := humanize.CommafWithDigits(r.TotalCost, 4)
-	totalCostJPY := humanize.CommafWithDigits(r.TotalCostJPY, 2)
-	costPerPVUSD := humanize.CommafWithDigits(_costPerPVUSD, 6)
-	costPerPVJPY := humanize.CommafWithDigits(_costPerPVJPY, 4)
-	rate := humanize.CommafWithDigits(r.Rate, 2)
-
-	targetDay := r.Date
-
-	type row struct {
-		label string
-		value string
-	}
-	summaryRows := []row{
-		{"Period", targetDay.AddDate(0, 0, -1).Format("2006/01/02")},
-		{"PV", pv},
-		{"Rate", fmt.Sprintf("$1 = ¥%s", rate)},
-	}
-
-	PrintSection("Summary")
-	fmt.Println()
-	for _, s := range summaryRows {
-		fmt.Printf(" %-8s %s\n", s.label, s.value)
-	}
-
-	PrintSection("Cost")
-	fmt.Println()
-	printTable([][]string{
-		{"", "USD", "JPY"},
-		{"Total", totalCost, totalCostJPY},
-		{"/ PV", costPerPVUSD, costPerPVJPY},
-	})
-
-	fmt.Println(strings.Repeat("─", barWith))
-}
-
 type Row struct {
 	Label string
 	Value string

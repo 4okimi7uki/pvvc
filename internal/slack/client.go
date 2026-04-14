@@ -125,7 +125,7 @@ func (c *Client) Send(v *viper.Viper, ctx context.Context, text string, summary 
 	}
 	report.PrintSection("Notification")
 	fmt.Println()
-	fmt.Println(" Sent the analysis result to Slack 🕊️")
+	fmt.Println(" Sent the analysis result to Slack 🔔")
 	fmt.Println()
 
 	return nil
