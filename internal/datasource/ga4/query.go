@@ -33,14 +33,16 @@ func parseReport(propertyID string, resp *analyticsdata.RunReportResponse) (*Rep
 	return report, nil
 }
 
-// Note: {Name: "pagePath"}をついかする場合はfetchをページネーションで取得しないと、漏れが発生する
-func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate string) (*Report, error) {
-	req := &analyticsdata.RunReportRequest{
+const pageSize = 10000
+
+func buildRunReportRequest(startDate, endDate string, offset int64) *analyticsdata.RunReportRequest {
+	return &analyticsdata.RunReportRequest{
 		DateRanges: []*analyticsdata.DateRange{
 			{StartDate: startDate, EndDate: endDate},
 		},
 		Dimensions: []*analyticsdata.Dimension{
 			{Name: "date"},
+			{Name: "sessionSourceMedium"},
 			// {Name: "pagePath"},
 		},
 		Metrics: []*analyticsdata.Metric{
@@ -49,13 +51,67 @@ func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate str
 		OrderBys: []*analyticsdata.OrderBy{
 			{Dimension: &analyticsdata.DimensionOrderBy{DimensionName: "date"}},
 		},
-		Limit: 10000,
+		Limit:  pageSize,
+		Offset: offset,
+		DimensionFilter: &analyticsdata.FilterExpression{
+			AndGroup: &analyticsdata.FilterExpressionList{
+				Expressions: []*analyticsdata.FilterExpression{
+					{
+						NotExpression: &analyticsdata.FilterExpression{
+							Filter: &analyticsdata.Filter{
+								FieldName: "sessionSourceMedium",
+								StringFilter: &analyticsdata.StringFilter{
+									MatchType: "PARTIAL_REGEXP",
+									Value:     "SmartNews / app",
+								},
+							},
+						},
+					},
+					{
+						Filter: &analyticsdata.Filter{
+							FieldName: "pageTitle",
+							StringFilter: &analyticsdata.StringFilter{
+								MatchType: "CONTAINS",
+								Value:     "ゴルフ総合サイト ALBA Net",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate string) (*Report, error) {
+	report := &Report{
+		PropertyID: c.propertyID,
+		Rows:       make([]DailyPageViews, 0),
 	}
 
-	resp, err := c.svc.Properties.RunReport(c.propertyID, req).Context(ctx).Do()
-	if err != nil {
-		return nil, fmt.Errorf("ga4: RunReport failed: %w", err)
+	var offset int64
+	for {
+		req := buildRunReportRequest(startDate, endDate, offset)
+
+		resp, err := c.svc.Properties.RunReport(c.propertyID, req).Context(ctx).Do()
+		if err != nil {
+			return nil, fmt.Errorf("ga4: RunReport failed (offset=%d): %w", offset, err)
+		}
+
+		if len(resp.Rows) == 0 {
+			break
+		}
+
+		page, err := parseReport(c.propertyID, resp)
+		if err != nil {
+			return nil, err
+		}
+		report.Rows = append(report.Rows, page.Rows...)
+
+		offset += int64(len(resp.Rows))
+		if offset >= resp.RowCount {
+			break
+		}
 	}
 
-	return parseReport(c.propertyID, resp)
+	return report, nil
 }
