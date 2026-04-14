@@ -97,7 +97,7 @@ GEMINI_API_KEY=<Gemini API Key>
 # Slack
 SLACK_WEBHOOK_URL=<Incoming Webhook URL>
 
-# Optional
+# target web site name
 TARGET_WEBSITE_NAME=<Website Name>
 ```
 
