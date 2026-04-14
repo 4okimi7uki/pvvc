@@ -16,7 +16,7 @@ func PrintLogo() {
  ╚═╝╚═╝    ╚═══╝ ╚═╝ ╚═══╝ ╚═╝ ╚═════╝
                                      `
 	const (
-		description = "Page View Vercel Cost"
+		description = "Page Views Vercel Cost"
 		tagline     = "Compare Vercel spend with GA4 traffic :P"
 		repoURL     = "https://github.com/4okimi7uki/pvvc"
 	)
