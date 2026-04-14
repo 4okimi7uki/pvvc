@@ -58,7 +58,6 @@ func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
 		}
 		charges = append(charges, c)
 	}
-	fmt.Println(charges)
 
 	return &Report{Charges: charges}, nil
 }
