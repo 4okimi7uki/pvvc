@@ -19,7 +19,10 @@ var reportCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			_ = report.PrintSomeDayReports(from, to, rep, "")
+
+			if !quiet {
+				report.PrintSomeDayReports(from, to, rep, "")
+			}
 
 			return nil
 		})
