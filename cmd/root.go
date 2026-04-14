@@ -1,13 +1,21 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/config"
+	"github.com/4okimi7uki/pvvc/internal/ui"
 	"github.com/spf13/cobra"
 )
 
 var cfg = config.New()
+var (
+	from time.Time
+	to   time.Time
+)
 
 var rootCmd = &cobra.Command{
 	Use:          "pvvc",
@@ -23,4 +31,33 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func init() {
+	// Default: 1 week
+	rootCmd.PersistentFlags().TimeVar(&from, "from", time.Now().AddDate(0, 0, -7), []string{
+		"2006-01-02",
+		time.RFC3339,
+	}, "start date of the report period (e.g. 2006-01-02)")
+	rootCmd.PersistentFlags().TimeVar(&to, "to", time.Now(), []string{
+		"2006-01-02",
+		time.RFC3339,
+	}, "end date of the report period (e.g. 2006-01-03)")
+}
+
+func runWith(fn func(ctx context.Context) error) error {
+	excuteTime := time.Now()
+
+	ctx := context.Background()
+	ui.PrintLogo()
+
+	err := fn(ctx)
+	if err != nil {
+		return err
+	}
+
+	elapsed := time.Since(excuteTime)
+	fmt.Printf("───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
+
+	return nil
 }

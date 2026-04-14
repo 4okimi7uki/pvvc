@@ -63,7 +63,7 @@ func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyRepo
 		aiClient := gemini.New(geminiKey)
 		err := ui.WithSpinner("Analyzing...", func(update func(string), addDone func(string)) error {
 			var err error
-			analysisResult, err = aiClient.Analyze(ctx, reports)
+			analysisResult, err = aiClient.Analyze(ctx, reports, update)
 			return err
 		})
 		if err != nil {
