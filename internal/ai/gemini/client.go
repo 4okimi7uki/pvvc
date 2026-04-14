@@ -29,11 +29,11 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport) (str
 	prompt := buildPrompt(reports)
 
 	var result *genai.GenerateContentResponse
-	if err := retry.Do(ctx, 3, func() error {
+	if err := retry.Do(ctx, 5, func() error {
 		var e error
 		result, e = client.Models.GenerateContent(
 			ctx,
-			"gemini-3.1-flash-lite-preview",
+			"gemini-3-flash-preview",
 			genai.Text(prompt),
 			nil,
 		)
