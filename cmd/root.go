@@ -7,11 +7,16 @@ import (
 	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/config"
+	"github.com/4okimi7uki/pvvc/internal/gh"
 	"github.com/4okimi7uki/pvvc/internal/ui"
 	"github.com/spf13/cobra"
 )
 
 var cfg = config.New()
+var (
+	showVersion bool
+	version     = "v0.0.0-dev"
+)
 var (
 	from time.Time
 	to   time.Time
@@ -23,6 +28,14 @@ var rootCmd = &cobra.Command{
 	Short:        "Analyze Vercel cost against GA4 pageviews",
 	Long:         "pvvc fetches GA4 pageviews, Vercel costs, and FX rates to help you report on and analyze the relationship between traffic and hosting cost.",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if showVersion {
+			resolvedVersion := gh.ResolvedVersion(version)
+			fmt.Printf("%s %s\n", resolvedVersion, ui.Mastered("(PVVC)"))
+
+			// check latest version
+			PrintCheckLatestVersion(version)
+			return nil
+		}
 		return cmd.Help()
 	},
 }
@@ -34,6 +47,8 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "print version information")
+
 	// Default: 1 week
 	rootCmd.PersistentFlags().TimeVar(&from, "from", time.Now().AddDate(0, 0, -7), []string{
 		"2006-01-02",
@@ -60,4 +75,14 @@ func runWith(fn func(ctx context.Context) error) error {
 	fmt.Printf("───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
 
 	return nil
+}
+
+func PrintCheckLatestVersion(version string) {
+	resolvedVersion := gh.ResolvedVersion(version)
+	if msg, err := gh.CheckLatestVersion("4okimi7uki", "pvvc", resolvedVersion); err == nil && msg != "" {
+		_, _ = fmt.Fprintf(os.Stdout, "%s\n", ui.LimeYellow(msg))
+		_, _ = fmt.Fprintf(os.Stdout, "%s\n\n", "https://github.com/4okimi7uki/pvvc/releases")
+	} else if err != nil {
+		_ = err
+	}
 }
