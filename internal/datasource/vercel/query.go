@@ -9,10 +9,19 @@ import (
 	"time"
 )
 
+// JSTの「昨日」をVercel基準（07:00 UTC）に合わせる
+func vercelDayRange(date time.Time) time.Time {
+	utc := date.UTC()
+	// その日の07:00 UTCをstartに
+	return time.Date(utc.Year(), utc.Month(), utc.Day(), 7, 0, 0, 0, time.UTC)
+}
+
 func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
+	vercelDayStart := vercelDayRange(start)
+	vercelDayEnd := vercelDayRange(end)
 	params := url.Values{}
-	params.Set("from", start.Format(time.DateOnly))
-	params.Set("to", end.Format(time.DateOnly))
+	params.Set("from", vercelDayStart.Format(time.RFC3339))
+	params.Set("to", vercelDayEnd.Format(time.RFC3339))
 	if c.teamID != "" {
 		params.Set("teamId", c.teamID)
 	}
@@ -49,6 +58,7 @@ func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
 		}
 		charges = append(charges, c)
 	}
+	fmt.Println(charges)
 
 	return &Report{Charges: charges}, nil
 }
