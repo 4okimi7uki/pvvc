@@ -13,11 +13,12 @@ import (
 )
 
 type Client struct {
-	apiKey string
+	apiKey      string
+	serviceName string
 }
 
-func New(apiKey string) *Client {
-	return &Client{apiKey: apiKey}
+func New(apiKey, serviceName string) *Client {
+	return &Client{apiKey: apiKey, serviceName: serviceName}
 }
 
 func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, update func(string)) (string, error) {
@@ -28,7 +29,7 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, upda
 		return "", fmt.Errorf("create gemini client: %w", err)
 	}
 
-	prompt := buildPrompt(reports)
+	prompt := buildPrompt(reports, c.serviceName)
 
 	// Note: 新しいモデルが出た際はここを更新
 	geminiModels := []string{
@@ -73,7 +74,7 @@ func isRateLimitError(err error) bool {
 	return false
 }
 
-func buildPrompt(reports []report.DailyReport) string {
+func buildPrompt(reports []report.DailyReport, serviceName string) string {
 	var sb strings.Builder
 
 	newsUrlList := []string{
@@ -88,7 +89,7 @@ func buildPrompt(reports []report.DailyReport) string {
 	}
 
 	sb.WriteString("# 役割\n")
-	sb.WriteString("あなたは、ゴルフメディア「ALBA Net」のシニアデータアナリストです。\n")
+	fmt.Fprintf(&sb, "あなたは、ゴルフメディア「%s」のシニアデータアナリストです。\n", serviceName)
 	sb.WriteString("GA4とVercelのデータおよびゴルフ大会情報・ニュースを統合し、多忙な担当者が10秒で把握できる「超要約レポート」を作成してください。\n\n")
 
 	sb.WriteString("# 前提・制約\n")
@@ -97,7 +98,7 @@ func buildPrompt(reports []report.DailyReport) string {
 	sb.WriteString("- 分析は「トレンドの把握」と「外部要因との相関」に絞ってください。\n\n")
 
 	sb.WriteString("# サイト・インフラ特性\n")
-	sb.WriteString("- ALBA Netはゴルフメディアサイトで、大会開催中は速報・スコアページへのアクセスが集中します。\n")
+	fmt.Fprintf(&sb, "- %sはゴルフメディアサイトで、大会開催中は速報・スコアページへのアクセスが集中します。\n", serviceName)
 	sb.WriteString("- Vercelエッジキャッシュが有効なため、同一URLへの繰り返しアクセスはコストにほぼ影響しません。\n")
 	sb.WriteString("- 【重要】集中アクセス時はキャッシュが効きコスト効率が良く、大会終了後の分散アクセス時はコスト効率が悪化します。\n")
 	sb.WriteString("- 「PVが減ってもコストが上がる」場合は、アクセスが集中から分散に変化した可能性を優先的に考えてください。\n\n")

@@ -60,7 +60,7 @@ func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyRepo
 	var analysisResult string
 	geminiKey := v.GetString("ai.gemini_key")
 	if geminiKey != "" {
-		aiClient := gemini.New(geminiKey)
+		aiClient := gemini.New(geminiKey, v.GetString("service.name"))
 		err := ui.WithSpinner("Analyzing...", func(update func(string), addDone func(string)) error {
 			var err error
 			analysisResult, err = aiClient.Analyze(ctx, reports, update)
