@@ -1,0 +1,60 @@
+name: Bug Report
+description: バグ・不具合の報告
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグを報告いただきありがとうございます🐝 再現に必要な情報をできるだけ詳しく記入してください。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 概要
+      description: 何が起きているか簡潔に説明してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: バグを再現するための手順
+      placeholder: |
+        1. `pvvc run` を実行する
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+      description: 本来どうなるべきか
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+      description: 実際に起きていること（エラーメッセージ・ログがあれば貼ってください）
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: pvvc のバージョン
+      placeholder: "v1.0.0 など（`pvvc --version` で確認）"
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: OS / 実行環境
+      placeholder: "macOS 15, Ubuntu 24.04 など"
+    validations:
+      required: false
