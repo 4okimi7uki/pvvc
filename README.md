@@ -27,7 +27,7 @@ Geminiによる分析コメント生成、Slack通知まで自動化できます
 
 ## Features
 
-- 直近14日分の **GA4 PV / Vercel Cost / USDJPY** を自動取得
+- 直近7日分の **GA4 PV / Vercel Cost / USDJPY** を自動取得（`--from` / `--to` で期間変更可能）
 - 日別メトリクスを **CLIテーブル** で見やすく表示
 - **Cost per PV** を算出し、コスト効率を可視化
 - Gemini AI によるトレンド分析コメントを生成
@@ -86,6 +86,7 @@ flowchart LR
 # Vercel
 VERCEL_TOKEN=<Vercel API Token>
 TEAM_ID=<Vercel Team ID>
+PROJECT_ID=<Vercel Project ID>
 
 # Google Analytics 4
 PROPERTY_ID=<GA4 Property ID>
@@ -123,16 +124,31 @@ pvvc analyze
 pvvc analyze --notify
 ```
 
+### Suppress terminal output (quiet mode)
+
+```bash
+pvvc report --quiet
+pvvc analyze --notify --quiet
+```
+
 ---
 
 ## Commands
 
-| Command                 | Description                            |
-| ----------------------- | -------------------------------------- |
-| `pvvc report`           | 直近14日分のPV・コストレポートを出力   |
-| `pvvc analyze`          | AIによるトラフィック・コスト分析を実行 |
-| `pvvc analyze --notify` | 分析結果をSlackに通知                  |
+| Command        | Description                            |
+| -------------- | -------------------------------------- |
+| `pvvc report`  | 直近7日分のPV・コストレポートを出力    |
+| `pvvc analyze` | AIによるトラフィック・コスト分析を実行 |
+
+## Flags
+
+| Flag       | Short | Default | Description                           |
+| ---------- | ----- | ------- | ------------------------------------- |
+| `--from`   | -     | 7日前   | 対象期間の開始日 (e.g. `2006-01-02`)  |
+| `--to`     | -     | 今日    | 対象期間の終了日 (e.g. `2006-01-03`)  |
+| `--quiet`  | `-q`  | `false` | ターミナルへの結果出力を抑制          |
+| `--notify` | -     | `false` | 分析結果をSlackに通知 (`analyze`のみ) |
 
 ---
 
-<small>2026 [Aoki Mizuki](https://github.com/4okimi7uki) – Developed with 🍭 and a sense of fun.</small>
+<small>2026 Aoki Mizuki – Developed with 🍭 and a sense of fun.</small>
