@@ -32,7 +32,7 @@ jobs:
 
             | OS / Arch | Artifact |
             | --- | --- |
-            | macOS / arm64 (Apple Silicon) | [gh-pr-formatter_mac_arm64](https://github.com/4okimi7uki/pvvc/releases/download/${{ github.ref_name }}/pvvc_mac_arm64) |
+            | macOS / arm64 (Apple Silicon) | [pvvc_mac_arm64](https://github.com/4okimi7uki/pvvc/releases/download/${{ github.ref_name }}/pvvc_mac_arm64) |
             | macOS / amd64 (Intel) | [pvvc_mac_amd64](https://github.com/4okimi7uki/pvvc/releases/download/${{ github.ref_name }}/pvvc_mac_amd64) |
             | Linux / amd64 | [pvvc_linux_amd64](https://github.com/4okimi7uki/pvvc/releases/download/${{ github.ref_name }}/pvvc_linux_amd64) |
-            | Windows / amd64 | [pvvc.exe](https://github.com/4okimi7uki/pvvc/releases/download/${{ github.ref_name }}/gh-pr-formatter.exe) |
+            | Windows / amd64 | [pvvc.exe](https://github.com/4okimi7uki/pvvc/releases/download/${{ github.ref_name }}/pvvc.exe) |
