@@ -42,7 +42,7 @@ type Row struct {
 	Value string
 }
 
-func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) []Row {
+func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) {
 	var allPv int64
 	var allCost float64
 
@@ -64,8 +64,15 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	}
 
+	var preiod strings.Builder
+	if start.Equal(end.AddDate(0, 0, -1)) {
+		fmt.Fprintf(&preiod, "%s", start.Format("2006/01/02"))
+	} else {
+		fmt.Fprintf(&preiod, "%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))
+	}
+
 	summaryRows := []Row{
-		{"Period", fmt.Sprintf("%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))},
+		{"Period", preiod.String()},
 		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}
@@ -84,6 +91,39 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 		fmt.Println()
 		fmt.Println(aiResponse)
 	}
+}
 
-	return summaryRows
+var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
+
+func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
+	otherReports := reports[:len(reports)-1]
+	latest := reports[len(reports)-1]
+
+	var sumPV int64
+	var sumCost float64
+	for _, r := range otherReports {
+		sumPV += r.PV
+		sumCost += r.TotalCost
+	}
+	avgPV := float64(sumPV) / float64(len(otherReports))
+	avgCost := sumCost / float64(len(otherReports))
+
+	pvChangePct := (float64(latest.PV) - avgPV) / avgPV * 100
+	costChangePct := (latest.TotalCost - avgCost) / avgCost * 100
+
+	formatPct := func(pct float64) string {
+		if pct >= 0 {
+			return fmt.Sprintf("+%.1f%%", pct)
+		}
+		return fmt.Sprintf("%.1f%%", pct)
+	}
+
+	costPerPV := latest.TotalCost / float64(latest.PV)
+
+	return []Row{
+		{"Date", latest.Date.Format("2006/01/02") + fmt.Sprintf(" (%s)", weekdaysJa[latest.Date.Weekday()])},
+		{"PV", fmt.Sprintf("%s   ----------   %s", humanize.Comma(latest.PV), formatPct(pvChangePct))},
+		{"Cost", fmt.Sprintf("$%s   ----------   %s", humanize.CommafWithDigits(latest.TotalCost, 2), formatPct(costChangePct))},
+		{"Cost / PV", fmt.Sprintf(" $%s", humanize.CommafWithDigits(costPerPV, 6))},
+	}
 }

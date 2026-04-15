@@ -32,9 +32,11 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, upda
 	prompt := buildPrompt(reports, c.serviceName)
 
 	// Note: 新しいモデルが出た際はここを更新
+	// https://ai.google.dev/gemini-api/docs/models
 	geminiModels := []string{
 		"gemini-3-flash-preview",
 		"gemini-3.1-flash-lite-preview",
+		"gemini-2.5-flash",
 	}
 
 	update("Gemini Thinking...")
@@ -42,7 +44,7 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, upda
 	var result *genai.GenerateContentResponse
 	for i, model := range geminiModels {
 		if i > 0 {
-			update(fmt.Sprintf("Taking longer than usual... So, Change model: %s", model))
+			update(fmt.Sprintf("Taking longer than usual... Switching models to %s", model))
 		}
 		retryErr := retry.Do(ctx, 3, func() error {
 			var e error
@@ -57,7 +59,7 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, upda
 		if retryErr == nil {
 			return result.Text(), nil
 		}
-		if !isRateLimitError(retryErr) {
+		if !isRateLimitError(retryErr) || i == len(geminiModels)-1 {
 			return "", fmt.Errorf("gemini: generate content: %w", retryErr)
 		}
 		lastErr = retryErr
@@ -71,7 +73,7 @@ func isRateLimitError(err error) bool {
 	if errors.As(err, &apiErr) {
 		return apiErr.Code == 429 || apiErr.Code == 503
 	}
-	return false
+	return strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "RESOURCE_EXHAUSTED")
 }
 
 func buildPrompt(reports []report.DailyReport, serviceName string) string {

@@ -16,6 +16,7 @@ var cfg = config.New()
 var (
 	showVersion bool
 	version     = "v0.0.0-dev"
+	quiet       bool
 )
 var (
 	from time.Time
@@ -27,6 +28,13 @@ var rootCmd = &cobra.Command{
 	SilenceUsage: true,
 	Short:        "Analyze Vercel cost against GA4 pageviews",
 	Long:         "pvvc fetches GA4 pageviews, Vercel costs, and FX rates to help you report on and analyze the relationship between traffic and hosting cost.",
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if from.After(to) || from.Equal(to) {
+			return fmt.Errorf("--from must be before --to")
+		}
+
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if showVersion {
 			resolvedVersion := gh.ResolvedVersion(version)
@@ -48,6 +56,7 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "print version information")
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "no print result")
 
 	// Default: 1 week
 	rootCmd.PersistentFlags().TimeVar(&from, "from", time.Now().AddDate(0, 0, -7), []string{
