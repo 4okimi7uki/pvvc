@@ -42,7 +42,7 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]repor
 
 	var reports []report.DailyReport
 	err = ui.WithSpinner("Fetching...", func(update func(string), addDone func(string)) error {
-		reports, err = report.FetchDailyReport(ctx, ga4Client, vercelClient, start, end, addDone)
+		reports, err = report.FetchDailyReport(v, ctx, ga4Client, vercelClient, start, end, addDone)
 		if err != nil {
 			return err
 		}
