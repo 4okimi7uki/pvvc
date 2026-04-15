@@ -9,10 +9,12 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/ui"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 )
 
 func FetchDailyReport(
+	v *viper.Viper,
 	ctx context.Context,
 	ga4Client *ga4.Client,
 	vercelClient *vercel.Client,
@@ -50,7 +52,7 @@ func FetchDailyReport(
 			return fmt.Errorf("failed to vercel fetching: %w", err)
 		}
 
-		totalCosts = cost.TotalCostByDay()
+		totalCosts = cost.TotalCostByDay(v.GetString("vercel.project_id"))
 		addDone(ui.Green("  ✔ ") + "Vercel")
 
 		return nil
