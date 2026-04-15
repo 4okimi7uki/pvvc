@@ -51,7 +51,7 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 	sb.WriteString("*Summary*\n")
 
 	for _, row := range summary {
-		fmt.Fprintf(&sb, "%-*s %s\n", 18-len(row.Label), row.Label, row.Value)
+		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
 	}
 	summaryText := sb.String()
 	headingTitle := fmt.Sprintf("📊 %s Daily Report", c.serviceName)

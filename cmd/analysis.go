@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/report"
@@ -41,7 +40,6 @@ var analyzeCmd = &cobra.Command{
 					return err
 				}
 				summary := report.LatestDaySummary(to, rep)
-				fmt.Println(summary)
 				err = slackClient.Send(ctx, analysisResult, summary)
 
 				if err != nil {
