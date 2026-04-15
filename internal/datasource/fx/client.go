@@ -28,6 +28,10 @@ func FetchUSDToJPY(start time.Time, end time.Time) (map[string]float64, error) {
 		_ = resp.Body.Close()
 	}()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fx: unexpected status %d", resp.StatusCode)
+	}
+
 	var response []struct {
 		Date  string  `json:"date"`
 		Base  string  `json:"base"`

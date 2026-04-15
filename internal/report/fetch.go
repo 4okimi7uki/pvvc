@@ -49,7 +49,7 @@ func FetchDailyReport(
 		)
 		if err != nil {
 			addDone(ui.Red("  ✗ ") + "Vercel")
-			return fmt.Errorf("failed to vercel fetching: %w", err)
+			return fmt.Errorf("failed to fetch Vercel billing: %w", err)
 		}
 
 		totalCosts = cost.TotalCostByDay(v.GetString("vercel.project_id"))
