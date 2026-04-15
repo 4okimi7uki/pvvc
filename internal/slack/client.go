@@ -102,16 +102,15 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 		return fmt.Errorf("slack: failed to marshal payload: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.webhookURL, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("slack: failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
 	var resp *http.Response
-	var e error
 	if err := retry.Do(ctx, 3, func() error {
+		req, e := http.NewRequestWithContext(ctx, http.MethodPost, c.webhookURL, bytes.NewReader(body))
+		if e != nil {
+			return e
+		}
+		req.Header.Set("Content-Type", "application/json")
 		resp, e = c.httpClient.Do(req)
+
 		return e
 	}); err != nil {
 		return fmt.Errorf("slack: request failed %w", err)

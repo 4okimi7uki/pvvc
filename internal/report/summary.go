@@ -9,7 +9,7 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
-const barWith = 100
+const barWidth = 100
 
 func printTable(rows [][]string) {
 	colWidths := make([]int, len(rows[0]))
@@ -33,7 +33,7 @@ func printTable(rows [][]string) {
 }
 
 func PrintSection(label string) {
-	line := strings.Repeat(ui.MossGray("─"), barWith-len(label))
+	line := strings.Repeat(ui.MossGray("─"), barWidth-len(label))
 	fmt.Printf("\n%s %s\n", label, line)
 }
 
@@ -64,15 +64,15 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	}
 
-	var preiod strings.Builder
+	var period strings.Builder
 	if start.Equal(end.AddDate(0, 0, -1)) {
-		fmt.Fprintf(&preiod, "%s", start.Format("2006/01/02"))
+		fmt.Fprintf(&period, "%s", start.Format("2006/01/02"))
 	} else {
-		fmt.Fprintf(&preiod, "%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))
+		fmt.Fprintf(&period, "%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))
 	}
 
 	summaryRows := []Row{
-		{"Period", preiod.String()},
+		{"Period", period.String()},
 		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}

@@ -70,7 +70,7 @@ func init() {
 }
 
 func runWith(fn func(ctx context.Context) error) error {
-	excuteTime := time.Now()
+	executeTime := time.Now()
 
 	ctx := context.Background()
 	ui.PrintLogo()
@@ -80,7 +80,7 @@ func runWith(fn func(ctx context.Context) error) error {
 		return err
 	}
 
-	elapsed := time.Since(excuteTime)
+	elapsed := time.Since(executeTime)
 	fmt.Printf("───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
 
 	return nil
@@ -91,7 +91,5 @@ func PrintCheckLatestVersion(version string) {
 	if msg, err := gh.CheckLatestVersion("4okimi7uki", "pvvc", resolvedVersion); err == nil && msg != "" {
 		_, _ = fmt.Fprintf(os.Stdout, "%s\n", ui.LimeYellow(msg))
 		_, _ = fmt.Fprintf(os.Stdout, "%s\n\n", "https://github.com/4okimi7uki/pvvc/releases")
-	} else if err != nil {
-		_ = err
 	}
 }

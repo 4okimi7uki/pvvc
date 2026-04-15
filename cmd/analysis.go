@@ -54,5 +54,5 @@ var analyzeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(analyzeCmd)
-	analyzeCmd.Flags().BoolVarP(&notify, "notify", "", false, "notify Slack with the analysis result")
+	analyzeCmd.Flags().BoolVar(&notify, "notify", false, "notify Slack with the analysis result")
 }
