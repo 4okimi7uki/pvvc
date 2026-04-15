@@ -64,8 +64,15 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	}
 
+	var preiod strings.Builder
+	if start.Equal(end.AddDate(0, 0, -1)) {
+		fmt.Fprintf(&preiod, "%s", start.Format("2006/01/02"))
+	} else {
+		fmt.Fprintf(&preiod, "%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))
+	}
+
 	summaryRows := []Row{
-		{"Period", fmt.Sprintf("%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))},
+		{"Period", preiod.String()},
 		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}
@@ -86,23 +93,11 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	}
 }
 
-// func sameDay(a, b time.Time) bool {
-// 	ay, am, ad := a.Date()
-// 	by, bm, bd := b.Date()
-// 	return ay == by && am == bm && ad == bd
-// }
-
 var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
 
 func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
-	fmt.Println(reports)
 	otherReports := reports[:len(reports)-1]
 	latest := reports[len(reports)-1]
-
-	fmt.Println("-----------------")
-	fmt.Println(otherReports)
-
-	fmt.Println(latest)
 
 	var sumPV int64
 	var sumCost float64
@@ -127,9 +122,8 @@ func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
 
 	return []Row{
 		{"Date", latest.Date.Format("2006/01/02") + fmt.Sprintf(" (%s)", weekdaysJa[latest.Date.Weekday()])},
-		{},
-		{"PV", fmt.Sprintf("%s   　 %s vs 7d avg 　", humanize.Comma(latest.PV), formatPct(pvChangePct))},
-		{"Cost", fmt.Sprintf("$%s   　 %s vs 7d avg 　", humanize.CommafWithDigits(latest.TotalCost, 2), formatPct(costChangePct))},
-		{"Cost / PV", fmt.Sprintf("$%s", humanize.CommafWithDigits(costPerPV, 6))},
+		{"PV", fmt.Sprintf("%s   ----------   %s", humanize.Comma(latest.PV), formatPct(pvChangePct))},
+		{"Cost", fmt.Sprintf("$%s   ----------   %s", humanize.CommafWithDigits(latest.TotalCost, 2), formatPct(costChangePct))},
+		{"Cost / PV", fmt.Sprintf(" $%s", humanize.CommafWithDigits(costPerPV, 6))},
 	}
 }
