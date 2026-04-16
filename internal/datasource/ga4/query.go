@@ -2,6 +2,7 @@ package ga4
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -95,6 +96,12 @@ func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate str
 		resp, err := c.svc.Properties.RunReport(c.propertyID, req).Context(ctx).Do()
 		if err != nil {
 			return nil, fmt.Errorf("ga4: RunReport failed (offset=%d): %w", offset, err)
+		}
+
+		if c.Raw {
+			if b, e := json.Marshal(resp); e == nil {
+				c.RawPages = append(c.RawPages, b)
+			}
 		}
 
 		if len(resp.Rows) == 0 {

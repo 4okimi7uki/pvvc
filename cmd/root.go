@@ -17,6 +17,7 @@ var (
 	showVersion bool
 	version     = "v0.0.0-dev"
 	quiet       bool
+	raw         bool
 )
 var (
 	from time.Time
@@ -57,6 +58,8 @@ func Execute() {
 func init() {
 	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "print version information")
 	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "no print result")
+	rootCmd.PersistentFlags().BoolVar(&raw, "raw", false, "print raw API responses from GA4 and Vercel")
+	_ = rootCmd.PersistentFlags().MarkHidden("raw")
 
 	// Default: 1 week
 	rootCmd.PersistentFlags().TimeVar(&from, "from", time.Now().AddDate(0, 0, -7), []string{
@@ -74,6 +77,11 @@ func runWith(fn func(ctx context.Context) error) error {
 
 	ctx := context.Background()
 	ui.PrintLogo()
+
+	for _, w := range config.Warnings(cfg) {
+		fmt.Fprintf(os.Stderr, "%s %s\n", ui.Yellow("⚠"), ui.Yellow(w))
+	}
+	fmt.Fprintln(os.Stderr)
 
 	err := fn(ctx)
 	if err != nil {
