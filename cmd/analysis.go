@@ -20,7 +20,7 @@ var analyzeCmd = &cobra.Command{
 		return runWith(func(ctx context.Context) error {
 
 			// build report
-			rep, err := app.RunMain(cfg, ctx, from, to)
+			rep, err := app.RunMain(cfg, ctx, from, to, raw)
 			if err != nil {
 				return err
 			}

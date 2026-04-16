@@ -11,6 +11,8 @@ type Client struct {
 	token      string
 	teamID     string
 	httpClient *http.Client
+	Raw        bool
+	RawBody    []byte
 }
 
 func New(token, teamID string) (*Client, error) {

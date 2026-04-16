@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -15,7 +17,7 @@ import (
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
 
-func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]report.DailyReport, error) {
+func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool) ([]report.DailyReport, error) {
 	propertyID := v.GetString("ga4.property_id")
 	jsonStr := v.GetString("ga4.credential")
 
@@ -31,6 +33,7 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]repor
 	if err != nil {
 		return []report.DailyReport{}, err
 	}
+	ga4Client.Raw = raw
 
 	vercelClient, err := vercel.New(
 		v.GetString("vercel.token"),
@@ -39,6 +42,7 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]repor
 	if err != nil {
 		return []report.DailyReport{}, fmt.Errorf("failed to create vercel client: %w", err)
 	}
+	vercelClient.Raw = raw
 
 	var reports []report.DailyReport
 	err = ui.WithSpinner("Fetching...", func(update func(string), addDone func(string)) error {
@@ -52,7 +56,26 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time) ([]repor
 		return []report.DailyReport{}, err
 	}
 
+	if raw {
+		printRawResponses(ga4Client, vercelClient)
+	}
+
 	return reports, nil
+}
+
+func printRawResponses(ga4Client *ga4.Client, vercelClient *vercel.Client) {
+	for i, page := range ga4Client.RawPages {
+		var buf bytes.Buffer
+		if err := json.Indent(&buf, page, "", "  "); err == nil {
+			fmt.Printf("\n=== GA4 Raw Response (page %d) ===\n%s\n", i+1, buf.String())
+		}
+	}
+	if len(vercelClient.RawBody) > 0 {
+		var buf bytes.Buffer
+		if err := json.Indent(&buf, vercelClient.RawBody, "", "  "); err == nil {
+			fmt.Printf("\n=== Vercel Raw Response ===\n%s\n", buf.String())
+		}
+	}
 }
 
 func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyReport) (string, error) {

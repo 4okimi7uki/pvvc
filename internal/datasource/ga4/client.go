@@ -12,6 +12,8 @@ import (
 type Client struct {
 	svc        *analyticsdata.Service
 	propertyID string
+	Raw        bool
+	RawPages   [][]byte
 }
 
 func New(ctx context.Context, propertyID string, credential *auth.Credentials) (*Client, error) {
