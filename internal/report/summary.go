@@ -73,7 +73,9 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	summaryRows := []Row{
 		{"Period", period.String()},
-		{"PV Avg", humanize.Comma(allPv / int64(len(reports)))},
+		{"PV", ""},
+		{" ⋅ total", humanize.Comma(allPv)},
+		{" ⋅ avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}
 	PrintSection("Summary")
@@ -93,6 +95,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	}
 }
 
+// for slack
 var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
 
 func LatestDaySummary(end time.Time, reports []DailyReport) []Row {

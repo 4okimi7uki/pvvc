@@ -15,7 +15,7 @@ var reportCmd = &cobra.Command{
 	Long:         "Fetch GA4 pageviews, Vercel costs, and FX rates, then print a traffic-and-cost report to the terminal.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runWith(func(ctx context.Context) error {
-			rep, err := app.RunMain(cfg, ctx, from, to)
+			rep, err := app.RunMain(cfg, ctx, from, to, raw)
 			if err != nil {
 				return err
 			}
