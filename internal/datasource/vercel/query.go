@@ -39,6 +39,10 @@ func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
 		return nil, fmt.Errorf("vercel: failed to read body: %w", err)
 	}
 
+	if c.Raw {
+		c.RawBody = body
+	}
+
 	var charges []BillingCharge
 	dec := json.NewDecoder(bytes.NewReader(body))
 

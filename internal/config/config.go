@@ -22,3 +22,16 @@ func New() *viper.Viper {
 
 	return v
 }
+
+// Warnings returns alert messages for env vars that are unset but would cause
+// silent wrong output (e.g. costs showing as $0).
+func Warnings(v *viper.Viper) []string {
+	var warns []string
+	if v.GetString("vercel.project_id") == "" {
+		warns = append(warns, "PROJECT_ID is not set — Vercel costs will show as $0 for all days")
+	}
+	if v.GetString("vercel.team_id") == "" {
+		warns = append(warns, "TEAM_ID is not set — fetching personal account billing (not team)")
+	}
+	return warns
+}
