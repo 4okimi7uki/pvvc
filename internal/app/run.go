@@ -9,6 +9,7 @@ import (
 
 	"cloud.google.com/go/auth/credentials"
 	"github.com/4okimi7uki/pvvc/internal/ai/gemini"
+	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/report"
@@ -18,6 +19,10 @@ import (
 )
 
 func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool) ([]report.DailyReport, error) {
+	if err := config.Validate(v); err != nil {
+		return nil, err
+	}
+
 	propertyID := v.GetString("ga4.property_id")
 	jsonStr := v.GetString("ga4.credential")
 

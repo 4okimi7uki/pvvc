@@ -78,8 +78,9 @@ func runWith(fn func(ctx context.Context) error) error {
 	ctx := context.Background()
 	ui.PrintLogo()
 
-	if len(config.Warnings(cfg)) > 0 {
-		for _, w := range config.Warnings(cfg) {
+	configWarnings := config.Warnings(cfg)
+	if len(configWarnings) > 0 {
+		for _, w := range configWarnings {
 			fmt.Fprintf(os.Stderr, "%s %s\n", ui.Yellow("⚠"), ui.Yellow(w))
 		}
 		fmt.Fprintln(os.Stderr)
