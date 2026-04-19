@@ -1,0 +1,54 @@
+name: Daily Report
+
+on:
+  schedule:
+    - cron: "1 1,7 * * *" # Runs every day at 10:01 and 16:01 JST
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "Deployment stage"
+        required: true
+        default: "prod"
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      TEAM_ID: ${{ secrets.TEAM_ID }}
+      PROJECT_ID: ${{ secrets.PROJECT_ID }}
+      PROPERTY_ID: ${{ secrets.PROPERTY_ID }}
+      GOOGLE_ANALYTICS_CREDENTIAL: ${{ secrets.GOOGLE_ANALYTICS_CREDENTIAL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      TARGET_WEBSITE_NAME: ${{ secrets.TARGET_WEBSITE_NAME }}
+      WEBHOOK_PROD: ${{ secrets.WEBHOOK_PROD }}
+      WEBHOOK_DEV: ${{ secrets.WEBHOOK_DEV }}
+
+    steps:
+      - name: Set stage env
+        run: |
+          STAGE="${{ inputs.stage || 'prod' }}"
+          if [ "$STAGE" = "prod" ]; then
+            echo "SLACK_WEBHOOK_URL=$WEBHOOK_PROD" >> $GITHUB_ENV
+          else
+            echo "SLACK_WEBHOOK_URL=$WEBHOOK_DEV" >> $GITHUB_ENV
+          fi
+
+      - name: Download pvvc binary
+        run: |
+          gh release download \
+            --repo 4okimi7uki/pvvc \
+            --pattern "pvvc_linux_amd64" \
+            --dir /tmp/pvvc
+          chmod +x /tmp/pvvc/pvvc_linux_amd64
+          sudo mv /tmp/pvvc/pvvc_linux_amd64 /usr/local/bin/pvvc
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Analyze and notify Slack
+        run: pvvc analyze --notify --quiet
