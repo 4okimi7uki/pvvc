@@ -32,7 +32,8 @@ Geminiによる分析コメント生成、Slack通知まで自動化できます
 - **Cost per PV** を算出し、コスト効率を可視化
 - Gemini AI によるトレンド分析コメントを生成
 - Slack への通知に対応
-- `.env` ベースでシンプルに設定可能
+- `pvvc init` による **インタラクティブな初期設定**
+- `.env` または `~/.config/pvvc/config.toml` で設定可能
 
 ---
 
@@ -60,7 +61,7 @@ flowchart LR
 ## Flow
 
 1. **Load configuration**
-   - `.env` または環境変数から認証情報を読み込みます
+   - 環境変数 / `.env` / `~/.config/pvvc/config.toml` から認証情報を読み込みます（優先度順）
 
 2. **Fetch metrics**
    - GA4 Data API からページビューを取得
@@ -80,7 +81,19 @@ flowchart LR
 
 ## Configuration
 
-プロジェクトルートに `.env` を作成してください。
+### 推奨: pvvc init
+
+インタラクティブな初期設定コマンドで、認証情報を対話形式で入力できます。  
+設定は `~/.config/pvvc/config.toml` に保存されます。
+
+```bash
+pvvc init
+```
+
+### 手動設定: 環境変数 / .env
+
+プロジェクトルートに `.env` を作成するか、環境変数として設定してください。  
+環境変数は config ファイルより優先されます。
 
 ```env
 # Vercel
@@ -102,9 +115,17 @@ SLACK_WEBHOOK_URL=<Incoming Webhook URL>
 TARGET_WEBSITE_NAME=<Website Name>
 ```
 
+> **設定の優先度:** 環境変数 > `~/.config/pvvc/config.toml` > `.env`
+
 ---
 
 ## Usage
+
+### Initialize configuration
+
+```bash
+pvvc init
+```
 
 ### Generate daily report
 
@@ -137,6 +158,7 @@ pvvc analyze --notify --quiet
 
 | Command        | Description                            |
 | -------------- | -------------------------------------- |
+| `pvvc init`    | 認証情報をインタラクティブに設定       |
 | `pvvc report`  | 直近7日分のPV・コストレポートを出力    |
 | `pvvc analyze` | AIによるトラフィック・コスト分析を実行 |
 
