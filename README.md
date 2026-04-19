@@ -115,7 +115,7 @@ SLACK_WEBHOOK_URL=<Incoming Webhook URL>
 TARGET_WEBSITE_NAME=<Website Name>
 ```
 
-> **設定の優先度:** 環境変数 > `~/.config/pvvc/config.toml` > `.env`
+> **設定の優先度:** 環境変数 / `.env` > `~/.config/pvvc/config.toml`
 
 ---
 
