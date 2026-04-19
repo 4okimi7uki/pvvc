@@ -51,4 +51,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Analyze and notify Slack
-        run: pvvc analyze --notify --quiet
+        run: |
+          for i in 1 2 3; do
+            pvvc analyze --notify --quiet && break
+            echo "Attempt $i failed. Retrying in 30s..."
+            sleep 30
+          done
