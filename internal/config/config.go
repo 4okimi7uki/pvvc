@@ -12,7 +12,7 @@ import (
 )
 
 // NOTE: priority
-// 1. 環境変数 .env
+// 1. 環境変数 / `.env`
 // 2. ~/.config/pvvc/config.toml
 
 func New() *viper.Viper {
