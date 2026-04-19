@@ -1,12 +1,12 @@
 # P.V.V.C
 
 <div align="center">
+    <img alt="pvvc logo" src="assets/pvvc.svg" height="150" />
+    <h3 align="center">Page Views Vercel Cost</h3>
 
 ![Go Version](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)
 ![CI](https://github.com/4okimi7uki/pvvc/actions/workflows/lint.yml/badge.svg)
 ![CLI](https://img.shields.io/badge/type-CLI-7A3EFF)
-
-### Page Views Vercel Cost
 
 GA4のページビューとVercelのホスティングコストを取得・比較し、  
 **トラフィックとコストのバランスを可視化・分析する** CLIツール
