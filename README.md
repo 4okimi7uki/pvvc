@@ -93,7 +93,7 @@ pvvc init
 ### 手動設定: 環境変数 / .env
 
 プロジェクトルートに `.env` を作成するか、環境変数として設定してください。  
-環境変数は config ファイルより優先されます。
+環境変数は `.config` ファイルより優先されます。
 
 ```env
 # Vercel
@@ -115,7 +115,7 @@ SLACK_WEBHOOK_URL=<Incoming Webhook URL>
 TARGET_WEBSITE_NAME=<Website Name>
 ```
 
-> **設定の優先度:** 環境変数 > `~/.config/pvvc/config.toml` > `.env`
+> **設定の優先度:** 環境変数 / `.env` > `~/.config/pvvc/config.toml`
 
 ---
 
