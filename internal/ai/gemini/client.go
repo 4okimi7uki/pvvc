@@ -5,12 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
+	"github.com/dustin/go-humanize"
 	"google.golang.org/api/googleapi"
 	"google.golang.org/genai"
 )
+
+var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
 
 type Client struct {
 	apiKey      string
@@ -76,6 +80,10 @@ func isRateLimitError(err error) bool {
 	return strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "RESOURCE_EXHAUSTED")
 }
 
+// vercelBillingCutoffUTCHour はVercelの課金データが確定するUTC時刻です。
+// ref: https://vercel.com/docs/billing
+const vercelBillingCutoffUTCHour = 7
+
 func buildPrompt(reports []report.DailyReport, serviceName string) string {
 	var sb strings.Builder
 
@@ -97,7 +105,7 @@ func buildPrompt(reports []report.DailyReport, serviceName string) string {
 	sb.WriteString("# 前提・制約\n")
 	sb.WriteString("- 現時点で提供できるデータはサイト全体のPV合計とVercelの総コストのみです。\n")
 	sb.WriteString("- ページ別・サービス別の詳細データはないため、技術的な原因の断定は行わないでください。\n")
-	sb.WriteString("- 分析は「トレンドの把握」と「外部要因との相関」に絞ってください。\n\n")
+	sb.WriteString("- 分析は「トレンドの把握」と「外部要因との相関」に絞ってください。\n")
 
 	sb.WriteString("# サイト・インフラ特性\n")
 	fmt.Fprintf(&sb, "- %sはゴルフメディアサイトで、大会開催中は速報・スコアページへのアクセスが集中します。\n", serviceName)
@@ -111,17 +119,21 @@ func buildPrompt(reports []report.DailyReport, serviceName string) string {
 
 	sb.WriteString("# 分析対象データ\n")
 	sb.WriteString("## Vercel & GA4 集計データ\n")
-	sb.WriteString("Date, PV, Cost(USD), Cost(JPY), USD/JPY Rate\n")
+	const rowFmt = "%-11s  %-12s  %-12s  %-14s  %-12s  %s\n"
+	sb.WriteString("```\n")
+	fmt.Fprintf(&sb, rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY")
 	for _, r := range reports {
-		fmt.Fprintf(&sb, "%s, %d, %.4f, %.2f, %.2f\n",
-			r.Date.Format("2006/01/02"),
-			r.PV,
-			r.TotalCost,
-			r.TotalCostJPY,
-			r.Rate,
+		dateStr := r.Date.Format("01/02") + fmt.Sprintf("(%s)", weekdaysJa[r.Date.Weekday()])
+		fmt.Fprintf(&sb, rowFmt,
+			dateStr,
+			humanize.Comma(r.PV),
+			"$"+humanize.CommafWithDigits(r.TotalCost, 2),
+			"¥"+humanize.CommafWithDigits(r.TotalCostJPY, 0),
+			"¥"+humanize.CommafWithDigits(r.TotalCostJPY/float64(r.PV), 4),
+			humanize.CommafWithDigits(r.Rate, 2),
 		)
 	}
-	sb.WriteString("\n")
+	sb.WriteString("```\n\n")
 
 	sb.WriteString("## ゴルフニュースソース\n")
 	sb.WriteString("以下のURLから最新情報を確認し、PV増減の背景（大会の有無・注目選手の結果等）を把握してください。\n")
@@ -142,13 +154,15 @@ func buildPrompt(reports []report.DailyReport, serviceName string) string {
 	sb.WriteString("（最新日のPV・コストを前日比で簡潔に評価してください）\n\n")
 
 	sb.WriteString("### 直近の推移データ\n")
-	sb.WriteString("```\n")
-	sb.WriteString("日付        PV          コスト     \n")
-	sb.WriteString("04/11(土)   978,567     $197.50    \n")
-	sb.WriteString("```\n\n")
+	sb.WriteString("（上記の集計データをそのままコードブロック内に転記してください）\n\n")
 
 	sb.WriteString("### 今週のトレンドとニュース相関\n")
 	sb.WriteString("（ゴルフ大会・外部イベントとPV増減の相関を中心に分析してください）\n\n")
+
+	if time.Now().UTC().Hour() < vercelBillingCutoffUTCHour {
+		sb.WriteString("🕖 Vercelの課金データは7:00 UTC（16:00 JST）以降に確定します。このレポートはその前に実行されているため、最新日のコストは暫定値です。\n")
+	}
+	sb.WriteString("\n")
 
 	if detectAnomaly(reports) {
 		sb.WriteString("### ⚠️ 異常検知\n")
