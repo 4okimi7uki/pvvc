@@ -76,10 +76,8 @@ func printRawResponses(ga4Client *ga4.Client, vercelClient *vercel.Client) {
 		}
 	}
 	if len(vercelClient.RawBody) > 0 {
-		var buf bytes.Buffer
-		if err := json.Indent(&buf, vercelClient.RawBody, "", "  "); err == nil {
-			fmt.Printf("\n=== Vercel Raw Response ===\n%s\n", buf.String())
-		}
+		// Vercelのレスポンスは複数JSONオブジェクトのストリームのため json.Indent は使えない
+		fmt.Printf("\n=== Vercel Raw Response ===\n%s\n", vercelClient.RawBody)
 	}
 }
 
