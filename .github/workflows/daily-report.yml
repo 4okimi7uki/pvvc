@@ -2,7 +2,7 @@ name: Daily Report
 
 on:
   schedule:
-    - cron: "1 1,7 * * *" # Runs every day at 10:01 and 16:01 JST
+    - cron: "10 1,7 * * *" # Runs every day at 10:10 and 16:10 JST
   workflow_dispatch:
     inputs:
       stage:
@@ -17,6 +17,7 @@ on:
 jobs:
   report:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -53,7 +54,7 @@ jobs:
       - name: Analyze and notify Slack
         run: |
           for i in 1 2 3; do
-            pvvc analyze --notify --quiet && break
-            echo "Attempt $i failed. Retrying in 30s..."
-            sleep 30
+            pvvc analyze --notify --quiet && exit 0
+            [ $i -lt 3 ] &&　echo "Attempt $i failed. Retrying in 30s..." && sleep 30
           done
+          exit 1
