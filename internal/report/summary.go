@@ -121,12 +121,9 @@ func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
 		return fmt.Sprintf("%.1f%%", pct)
 	}
 
-	costPerPV := latest.TotalCost / float64(latest.PV)
-
 	return []Row{
 		{"Date", latest.Date.Format("2006/01/02") + fmt.Sprintf(" (%s)", weekdaysJa[latest.Date.Weekday()])},
-		{"PV", fmt.Sprintf("%s   ----------   %s", humanize.Comma(latest.PV), formatPct(pvChangePct))},
-		{"Cost", fmt.Sprintf("$%s   ----------   %s", humanize.CommafWithDigits(latest.TotalCost, 2), formatPct(costChangePct))},
-		{"Cost / PV", fmt.Sprintf(" $%s", humanize.CommafWithDigits(costPerPV, 6))},
+		{"PV", fmt.Sprintf("%s   ----------   %s 　vs 7d avg", humanize.Comma(latest.PV), formatPct(pvChangePct))},
+		{"Cost", fmt.Sprintf("$%s   ----------   %s 　vs 7d avg", humanize.CommafWithDigits(latest.TotalCost, 2), formatPct(costChangePct))},
 	}
 }
