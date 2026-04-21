@@ -1,8 +1,8 @@
 name: Daily Report
 
 on:
-  schedule:
-    - cron: "10 1,7 * * *" # Runs every day at 10:10 and 16:10 JST
+  # schedule:
+  #   - cron: "10 1,7 * * *" # Runs every day at 10:10 and 16:10 JST
   workflow_dispatch:
     inputs:
       stage:
