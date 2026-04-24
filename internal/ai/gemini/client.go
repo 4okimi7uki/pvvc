@@ -103,9 +103,11 @@ func buildPrompt(reports []report.DailyReport, serviceName string) string {
 	sb.WriteString("GA4とVercelのデータおよびゴルフ大会情報・ニュースを統合し、多忙な担当者が10秒で把握できる「超要約レポート」を作成してください。\n\n")
 
 	sb.WriteString("# 前提・制約\n")
-	sb.WriteString("- 現時点で提供できるデータはサイト全体のPV合計とVercelの総コストのみです。\n")
-	sb.WriteString("- ページ別・サービス別の詳細データはないため、技術的な原因の断定は行わないでください。\n")
-	sb.WriteString("- 分析は「トレンドの把握」と「外部要因との相関」に絞ってください。\n")
+	sb.WriteString("- 提供データ（PV・コスト）と、**ゴルフニュースソースで得た「今年」の事実**のみを結合してください。\n")
+	sb.WriteString("- 【ハルシネーション厳禁】最新のニュースソースで今週開催されていることが確認できない大会名は、1文字も出力してはいけません。\n")
+	sb.WriteString("- 大会名が100%確実でない場合は、代わりに「ツアー」「大会」「国内・海外ツアー」など、一般名詞を必ず使用してください。\n")
+	sb.WriteString("- 記述の根拠となるニュースが見つからない場合は、推測せず「現在、特定の大会要因は確認できていません」と明記してください。\n")
+	fmt.Fprintf(&sb, "- 本日の日付は %s です。これより過去や未来の大会スケジュールと混同しないでください。\n", time.Now().Format("2006年01月02日"))
 
 	sb.WriteString("# サイト・インフラ特性\n")
 	fmt.Fprintf(&sb, "- %sはゴルフメディアサイトで、大会開催中は速報・スコアページへのアクセスが集中します。\n", serviceName)
