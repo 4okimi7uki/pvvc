@@ -9,7 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var notify bool
+var (
+	notify     bool
+	promptPath string
+)
 
 var analyzeCmd = &cobra.Command{
 	Use:          "analyze",
@@ -26,7 +29,7 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			// ai analyze
-			analysisResult, err := app.RunAnalysis(cfg, ctx, rep)
+			analysisResult, err := app.RunAnalysis(cfg, ctx, rep, promptPath)
 			if err != nil {
 				return err
 			}
@@ -55,4 +58,6 @@ var analyzeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(analyzeCmd)
 	analyzeCmd.Flags().BoolVar(&notify, "notify", false, "notify Slack with the analysis result")
+	analyzeCmd.Flags().StringVarP(&promptPath, "prompt", "p", "", "path to a custom prompt template file")
+
 }
