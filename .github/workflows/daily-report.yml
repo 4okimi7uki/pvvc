@@ -50,9 +50,11 @@ jobs:
           sudo mv /tmp/pvvc/pvvc_linux_amd64 /usr/local/bin/pvvc
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PROMPT_URL: https://raw.githubusercontent.com/4okimi7uki/pvvc/main/prompts/analyze.tmpl
 
       - name: Analyze and notify Slack
+        env:
+          PROMPT_URL: https://raw.githubusercontent.com/4okimi7uki/pvvc/main/prompts/analyze.tmpl
+
         run: |
           for i in 1 2 3; do
             pvvc analyze --prompt "$PROMPT_URL"　--notify --quiet && exit 0
