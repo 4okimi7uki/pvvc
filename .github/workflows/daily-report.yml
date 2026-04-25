@@ -51,13 +51,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Analyze and notify Slack
-        env:
-          PROMPT_URL: https://raw.githubusercontent.com/4okimi7uki/pvvc/main/prompts/analyze.tmpl
+      - name: Fetch prompt
+        run: |
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -o prompt.tmpl \
+            https://raw.githubusercontent.com/4okimi7uki/pvvc/main/prompts/analyze.tmpl
 
+      - name: Analyze and notify Slack
         run: |
           for i in 1 2 3; do
-            pvvc analyze --prompt "$PROMPT_URL" --notify --quiet && exit 0
+            pvvc analyze --prompt prompt.tmpl --notify --quiet && exit 0
             [ $i -lt 3 ] &&　echo "Attempt $i failed. Retrying in 30s..." && sleep 30
           done
           exit 1
