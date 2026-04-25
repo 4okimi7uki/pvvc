@@ -2,6 +2,7 @@ package ai
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"io"
 	"net/http"
@@ -73,7 +74,11 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 	}
 }
 
+//go:embed "templates/analyze.tmpl"
+var defaultPrompt embed.FS
+
 func BuildPrompt(tmplPath string, data PromptData) (string, error) {
+
 	var tmplBytes []byte
 	var err error
 
@@ -90,7 +95,7 @@ func BuildPrompt(tmplPath string, data PromptData) (string, error) {
 	case tmplPath != "":
 		tmplBytes, err = os.ReadFile(tmplPath)
 	default:
-		tmplBytes, err = os.ReadFile("prompts/analyze.tmpl") // fallback
+		tmplBytes, err = defaultPrompt.ReadFile("templates/analyze.tmpl") // fallback
 	}
 	if err != nil {
 		return "", fmt.Errorf("failed to read file: %w", err)
