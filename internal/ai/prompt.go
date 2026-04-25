@@ -1,0 +1,97 @@
+package ai
+
+import (
+	"bytes"
+	"fmt"
+	"os"
+	"text/template"
+	"time"
+
+	"github.com/4okimi7uki/pvvc/internal/report"
+	"github.com/dustin/go-humanize"
+)
+
+var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
+
+// vercelBillingCutoffUTCHour はVercelの課金データが確定するUTC時刻です。
+// ref: https://vercel.com/docs/billing
+const vercelBillingCutoffUTCHour = 7
+
+var newsUrlList = []string{
+	"https://www.pgatour.com/news",
+	"https://www.lpga.com/news",
+	"https://www.livgolf.com/news",
+	"https://www.lpga.or.jp/news/news_and_topics/",
+	"https://www.alba.co.jp/tour/category/next/schedule/",
+	"https://golf.com/",
+	"https://news.golfdigest.co.jp/search/",
+	"https://www.alba.co.jp/",
+}
+
+func detectAnomaly(reports []report.DailyReport) bool {
+	if len(reports) < 2 {
+		return false
+	}
+	// 直近2日のコスト比較で1.3倍以上なら異常
+	const anomalyCriteria = 1.3
+	latest := reports[len(reports)-1]
+	prev := reports[len(reports)-2]
+	if prev.TotalCost == 0 {
+		return false
+	}
+	return latest.TotalCost/prev.TotalCost >= anomalyCriteria
+}
+
+const rowFmt = "%-7s  %-12s  %-12s  %-14s  %-12s  %s"
+
+func BuildPromptData(reports []report.DailyReport, serviceName string) PromptData {
+	rows := make([]ReportRow, len(reports))
+	for i, r := range reports {
+		date := r.Date.Format("01/02") + fmt.Sprintf("(%s)", weekdaysJa[r.Date.Weekday()])
+		pv := humanize.Comma(r.PV)
+		cost := "$" + humanize.CommafWithDigits(r.TotalCost, 2)
+		costJPY := "¥" + humanize.CommafWithDigits(r.TotalCostJPY, 0)
+		costPerPV := "¥" + humanize.CommafWithDigits(r.TotalCostJPY/float64(r.PV), 4)
+		rate := humanize.CommafWithDigits(r.Rate, 2)
+
+		rows[i] = ReportRow{
+			Line: fmt.Sprintf(rowFmt, date, pv, cost, costJPY, costPerPV, rate),
+		}
+	}
+
+	return PromptData{
+		ServiceName:    serviceName,
+		Today:          time.Now().Format("2006年01月02日"),
+		TableHeader:    fmt.Sprintf(rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY"),
+		Rows:           rows,
+		NewsURLs:       newsUrlList,
+		IsBeforeCutoff: time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
+		HasAnomaly:     detectAnomaly(reports),
+	}
+}
+
+func BuildPrompt(tmplPath string, data PromptData) (string, error) {
+	var tmplBytes []byte
+	var err error
+
+	if tmplPath != "" {
+		tmplBytes, err = os.ReadFile(tmplPath)
+	} else {
+		tmplBytes, err = os.ReadFile("prompts/analyze.tmpl") // fallback
+	}
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %w", err)
+	}
+
+	tmpl, err := template.New("prompt").Parse(string(tmplBytes))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("failed to render template: %w", err)
+	}
+
+	return buf.String(), nil
+}
