@@ -81,12 +81,12 @@ func printRawResponses(ga4Client *ga4.Client, vercelClient *vercel.Client) {
 	}
 }
 
-func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyReport) (string, error) {
-	// TODO:　AIを外から切り替えられるようにする
+func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyReport, promptPath string) (string, error) {
+	// TODO: AIを外から切り替えられるようにする
 	var analysisResult string
 	geminiKey := v.GetString("ai.gemini_key")
 	if geminiKey != "" {
-		aiClient := gemini.New(geminiKey, v.GetString("service.name"))
+		aiClient := gemini.New(geminiKey, v.GetString("service.name"), promptPath)
 		err := ui.WithSpinner("Analyzing...", func(update func(string), addDone func(string)) error {
 			var err error
 			analysisResult, err = aiClient.Analyze(ctx, reports, update)
