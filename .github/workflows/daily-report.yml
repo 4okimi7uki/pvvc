@@ -55,7 +55,7 @@ jobs:
         run: |
           curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -o prompt.tmpl \
-            https://raw.githubusercontent.com/4okimi7uki/pvvc/main/prompts/analyze.tmpl
+            https://raw.githubusercontent.com/4okimi7uki/pvvc/main/internal/ai/templates/analyze.tmpl
 
       - name: Analyze and notify Slack
         run: |
