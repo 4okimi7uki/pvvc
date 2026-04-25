@@ -3,7 +3,10 @@ package ai
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"strings"
 	"text/template"
 	"time"
 
@@ -74,9 +77,19 @@ func BuildPrompt(tmplPath string, data PromptData) (string, error) {
 	var tmplBytes []byte
 	var err error
 
-	if tmplPath != "" {
+	switch {
+	case strings.HasPrefix(tmplPath, "http://") || strings.HasPrefix(tmplPath, "https://"):
+		resp, fetchErr := http.Get(tmplPath)
+		if fetchErr != nil {
+			return "", fmt.Errorf("failed to fetch template: %w", fetchErr)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+		tmplBytes, err = io.ReadAll(resp.Body)
+	case tmplPath != "":
 		tmplBytes, err = os.ReadFile(tmplPath)
-	} else {
+	default:
 		tmplBytes, err = os.ReadFile("prompts/analyze.tmpl") // fallback
 	}
 	if err != nil {
