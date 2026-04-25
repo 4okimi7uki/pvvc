@@ -57,7 +57,7 @@ jobs:
 
         run: |
           for i in 1 2 3; do
-            pvvc analyze --prompt "$PROMPT_URL"　--notify --quiet && exit 0
+            pvvc analyze --prompt "$PROMPT_URL" --notify --quiet && exit 0
             [ $i -lt 3 ] &&　echo "Attempt $i failed. Retrying in 30s..." && sleep 30
           done
           exit 1
