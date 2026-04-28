@@ -11,6 +11,8 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/ui"
 )
 
+var BuildVersion = "v0.0.0-dev"
+
 type githubRelease struct {
 	TagName string `json:"tag_name"`
 }
@@ -29,9 +31,9 @@ func getVCSBuildVersion(info *debug.BuildInfo) (string, bool) {
 	return revision, true
 }
 
-func ResolvedVersion(version string) string {
-	if version != "" && version != "v0.0.0-dev" && version != "dev" {
-		return version
+func ResolvedVersion() string {
+	if BuildVersion != "" && BuildVersion != "v0.0.0-dev" && BuildVersion != "dev" {
+		return BuildVersion
 	}
 
 	if info, ok := debug.ReadBuildInfo(); ok {

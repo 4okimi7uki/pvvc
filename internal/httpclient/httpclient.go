@@ -1,8 +1,14 @@
 package httpclient
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
 
-const userAgent = "pvvc"
+	"github.com/4okimi7uki/pvvc/internal/gh"
+)
+
+var resolvedVersion = gh.ResolvedVersion()
+var userAgent = fmt.Sprintf("pvvc/%s (github.com/4okimi7uki/pvvc)", resolvedVersion)
 
 type uaTransport struct {
 	base http.RoundTripper
