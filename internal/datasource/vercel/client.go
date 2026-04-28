@@ -3,6 +3,8 @@ package vercel
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/4okimi7uki/pvvc/internal/httpclient"
 )
 
 const baseURL = "https://api.vercel.com"
@@ -22,7 +24,7 @@ func New(token, teamID string) (*Client, error) {
 	return &Client{
 		token:      token,
 		teamID:     teamID,
-		httpClient: &http.Client{},
+		httpClient: httpclient.New(),
 	}, nil
 }
 

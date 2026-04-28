@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/4okimi7uki/pvvc/internal/httpclient"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
 )
@@ -25,7 +26,7 @@ func New(webhookURL string, serviceName string) (*Client, error) {
 	}
 	return &Client{
 		webhookURL:  webhookURL,
-		httpClient:  &http.Client{},
+		httpClient:  httpclient.New(),
 		serviceName: serviceName,
 	}, nil
 }

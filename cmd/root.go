@@ -15,7 +15,6 @@ import (
 var cfg = config.New()
 var (
 	showVersion bool
-	version     = "v0.0.0-dev"
 	quiet       bool
 	raw         bool
 )
@@ -38,11 +37,11 @@ var rootCmd = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if showVersion {
-			resolvedVersion := gh.ResolvedVersion(version)
+			resolvedVersion := gh.ResolvedVersion()
 			fmt.Printf("%s %s\n", resolvedVersion, ui.Mastered("(PVVC)"))
 
 			// check latest version
-			PrintCheckLatestVersion(version)
+			PrintCheckLatestVersion()
 			return nil
 		}
 		return cmd.Help()
@@ -97,8 +96,8 @@ func runWith(fn func(ctx context.Context) error) error {
 	return nil
 }
 
-func PrintCheckLatestVersion(version string) {
-	resolvedVersion := gh.ResolvedVersion(version)
+func PrintCheckLatestVersion() {
+	resolvedVersion := gh.ResolvedVersion()
 	if msg, err := gh.CheckLatestVersion("4okimi7uki", "pvvc", resolvedVersion); err == nil && msg != "" {
 		_, _ = fmt.Fprintf(os.Stdout, "%s\n", ui.LimeYellow(msg))
 		_, _ = fmt.Fprintf(os.Stdout, "%s\n\n", "https://github.com/4okimi7uki/pvvc/releases")
