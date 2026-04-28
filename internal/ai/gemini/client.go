@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/4okimi7uki/pvvc/internal/ai"
+	"github.com/4okimi7uki/pvvc/internal/httpclient"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
 	"google.golang.org/api/googleapi"
@@ -25,7 +26,8 @@ func New(apiKey, serviceName string, promptPath string) *Client {
 
 func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, update func(string)) (string, error) {
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey: c.apiKey,
+		APIKey:     c.apiKey,
+		HTTPClient: httpclient.New(),
 	})
 	if err != nil {
 		return "", fmt.Errorf("create gemini client: %w", err)
