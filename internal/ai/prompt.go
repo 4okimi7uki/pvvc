@@ -78,7 +78,6 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 var defaultPrompt embed.FS
 
 func BuildPrompt(tmplPath string, data PromptData) (string, error) {
-
 	var tmplBytes []byte
 	var err error
 
