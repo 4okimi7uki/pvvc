@@ -2,6 +2,11 @@ package vercel
 
 import "time"
 
+type ServiceCost struct {
+	ServiceName string
+	BilledCost  float64
+}
+
 type Report struct {
 	Charges []BillingCharge
 }

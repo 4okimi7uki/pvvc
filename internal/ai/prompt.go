@@ -15,8 +15,6 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
-var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
-
 // vercelBillingCutoffUTCHour はVercelの課金データが確定するUTC時刻です。
 // ref: https://vercel.com/docs/billing
 const vercelBillingCutoffUTCHour = 7
@@ -47,11 +45,14 @@ func detectAnomaly(reports []report.DailyReport) bool {
 }
 
 const rowFmt = "%-7s  %-12s  %-12s  %-14s  %-12s  %s"
+const serviceRowFmt = "%-40s %s"
 
 func BuildPromptData(reports []report.DailyReport, serviceName string) PromptData {
 	rows := make([]ReportRow, len(reports))
+	var serviceTableRows []ReportRow
+
 	for i, r := range reports {
-		date := r.Date.Format("01/02") + fmt.Sprintf("(%s)", weekdaysJa[r.Date.Weekday()])
+		date := r.Date.Format("01/02 (Mon)")
 		pv := humanize.Comma(r.PV)
 		cost := "$" + humanize.CommafWithDigits(r.TotalCost, 2)
 		costJPY := "¥" + humanize.CommafWithDigits(r.TotalCostJPY, 0)
@@ -61,16 +62,26 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 		rows[i] = ReportRow{
 			Line: fmt.Sprintf(rowFmt, date, pv, cost, costJPY, costPerPV, rate),
 		}
+
+		dateKey := r.Date.Format("20060102")
+		serviceTableRows = append(serviceTableRows, ReportRow{Line: date})
+		for _, l := range r.CostByServices[dateKey] {
+			serviceTableRows = append(serviceTableRows,
+				ReportRow{Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+humanize.FtoaWithDigits(l.BilledCost, 4))})
+		}
+		serviceTableRows = append(serviceTableRows, ReportRow{Line: ""})
 	}
 
 	return PromptData{
-		ServiceName:    serviceName,
-		Today:          time.Now().Format("2006年01月02日"),
-		TableHeader:    fmt.Sprintf(rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY"),
-		Rows:           rows,
-		NewsURLs:       newsUrlList,
-		IsBeforeCutoff: time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
-		HasAnomaly:     detectAnomaly(reports),
+		ServiceName:        serviceName,
+		Today:              time.Now().Format("2006年01月02日"),
+		TableHeader:        fmt.Sprintf(rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY"),
+		Rows:               rows,
+		ServiceTableHeader: fmt.Sprintf(serviceRowFmt, "SERVICE NAME", "BILLED COST"),
+		ServiceTableRows:   serviceTableRows,
+		NewsURLs:           newsUrlList,
+		IsBeforeCutoff:     time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
+		HasAnomaly:         detectAnomaly(reports),
 	}
 }
 
