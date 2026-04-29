@@ -24,6 +24,7 @@ func FetchDailyReport(
 ) ([]DailyReport, error) {
 	var pvs map[string]int64
 	var totalCosts map[string]float64
+	var dailyCostByService map[string][]vercel.ServiceCost
 	var rates map[string]float64
 
 	eg, ctx := errgroup.WithContext(ctx)
@@ -52,9 +53,23 @@ func FetchDailyReport(
 			return fmt.Errorf("failed to fetch Vercel billing: %w", err)
 		}
 
-		totalCosts = cost.TotalCostByDay(v.GetString("vercel.project_id"))
-		addDone(ui.Green("  ✔ ") + "Vercel")
+		projectId := v.GetString("vercel.project_id")
+		ieg, _ := errgroup.WithContext(ctx)
 
+		ieg.Go(func() error {
+			totalCosts = cost.TotalCostByDay(projectId)
+			return nil
+		})
+		ieg.Go(func() error {
+			dailyCostByService = cost.DailyCostByService(projectId)
+			return nil
+		})
+		if err = ieg.Wait(); err != nil {
+			addDone(ui.Red("  ✗ ") + "Vercel")
+			return fmt.Errorf("failed to aggregate costs: %w", err)
+		}
+
+		addDone(ui.Green("  ✔ ") + "Vercel")
 		return nil
 	})
 
@@ -81,11 +96,12 @@ func FetchDailyReport(
 		cost := totalCosts[key]
 		rate := rates[key]
 		reports = append(reports, DailyReport{
-			Date:         d,
-			PV:           pvs[key],
-			TotalCost:    cost,
-			TotalCostJPY: cost * rate,
-			Rate:         rate,
+			Date:           d,
+			PV:             pvs[key],
+			TotalCost:      cost,
+			TotalCostJPY:   cost * rate,
+			Rate:           rate,
+			CostByServices: dailyCostByService,
 		})
 	}
 	return reports, nil
