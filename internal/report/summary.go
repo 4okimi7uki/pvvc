@@ -46,6 +46,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	var allPv int64
 	var allCost float64
 
+	// metrics
 	var metricsRows [][]string
 	metricsRows = append(metricsRows, []string{"Date", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV(JPY)", "USD/JPY"})
 	for _, r := range reports {
@@ -64,6 +65,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	}
 
+	// summary
 	var period strings.Builder
 	if start.Equal(end.AddDate(0, 0, -1)) {
 		fmt.Fprintf(&period, "%s", start.Format("2006/01/02"))
@@ -78,6 +80,26 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 		{" ⋅ avg", humanize.Comma(allPv / int64(len(reports)))},
 		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
 	}
+
+	// service
+	var (
+		totalCostByService float64
+		costByService      [][]string
+	)
+
+	latestDate := end.AddDate(0, 0, -1).Format("20060102")
+	costByService = append(costByService, []string{"SERVICE NAME", "BILLED COST"})
+	for _, cs := range reports[0].CostByServices[latestDate] {
+		totalCostByService += cs.BilledCost
+		costByService = append(costByService,
+			[]string{cs.ServiceName, humanize.CommafWithDigits(cs.BilledCost, 4)})
+	}
+	costByService = append(costByService,
+		[]string{"---", "---"},
+		[]string{"TOTAL", humanize.CommafWithDigits(totalCostByService, 4)},
+	)
+
+	// Print
 	PrintSection("Summary")
 	fmt.Println()
 	for _, s := range summaryRows {
@@ -87,6 +109,10 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	PrintSection("Metrics")
 	fmt.Println()
 	printTable(metricsRows)
+
+	PrintSection("Service Costs on Latest Date")
+	fmt.Println()
+	printTable(costByService)
 
 	if aiResponse != "" {
 		PrintSection("AI Analytics")
