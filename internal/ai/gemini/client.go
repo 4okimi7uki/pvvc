@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/ai"
 	"github.com/4okimi7uki/pvvc/internal/httpclient"
@@ -24,7 +25,7 @@ func New(apiKey, serviceName string, promptPath string) *Client {
 	return &Client{apiKey: apiKey, serviceName: serviceName, promptPath: promptPath}
 }
 
-func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, update func(string)) (string, error) {
+func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, update func(string), end time.Time) (string, error) {
 	client, err := genai.NewClient(ctx, &genai.ClientConfig{
 		APIKey:     c.apiKey,
 		HTTPClient: httpclient.New(),
@@ -33,7 +34,7 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, upda
 		return "", fmt.Errorf("create gemini client: %w", err)
 	}
 
-	data := ai.BuildPromptData(reports, c.serviceName)
+	data := ai.BuildPromptData(reports, c.serviceName, end)
 	prompt, err := ai.BuildPrompt(c.promptPath, data)
 	if err != nil {
 		return "", fmt.Errorf("build prompt: %w", err)

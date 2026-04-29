@@ -29,7 +29,7 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			// ai analyze
-			analysisResult, err := app.RunAnalysis(cfg, ctx, rep, promptPath)
+			analysisResult, err := app.RunAnalysis(cfg, ctx, rep, promptPath, to)
 			if err != nil {
 				return err
 			}

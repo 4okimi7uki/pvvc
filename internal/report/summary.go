@@ -92,7 +92,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	for _, cs := range reports[0].CostByServices[latestDate] {
 		totalCostByService += cs.BilledCost
 		costByService = append(costByService,
-			[]string{cs.ServiceName, humanize.CommafWithDigits(cs.BilledCost, 4)})
+			[]string{cs.ServiceName, "$" + humanize.CommafWithDigits(cs.BilledCost, 4)})
 	}
 	costByService = append(costByService,
 		[]string{"---", "---"},

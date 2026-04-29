@@ -47,9 +47,14 @@ func detectAnomaly(reports []report.DailyReport) bool {
 }
 
 const rowFmt = "%-7s  %-12s  %-12s  %-14s  %-12s  %s"
+const serviceRowFmt = "%-40s %s"
 
-func BuildPromptData(reports []report.DailyReport, serviceName string) PromptData {
+func BuildPromptData(reports []report.DailyReport, serviceName string, end time.Time) PromptData {
 	rows := make([]ReportRow, len(reports))
+	var serviceTableRows []ReportRow
+	latestDate := end.AddDate(0, 0, -1).Format("20060102")
+	latestCostByService := reports[0].CostByServices[latestDate]
+
 	for i, r := range reports {
 		date := r.Date.Format("01/02") + fmt.Sprintf("(%s)", weekdaysJa[r.Date.Weekday()])
 		pv := humanize.Comma(r.PV)
@@ -62,15 +67,22 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 			Line: fmt.Sprintf(rowFmt, date, pv, cost, costJPY, costPerPV, rate),
 		}
 	}
+	for _, l := range latestCostByService {
+		serviceTableRows = append(serviceTableRows, ReportRow{
+			Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+humanize.FtoaWithDigits(l.BilledCost, 4)),
+		})
+	}
 
 	return PromptData{
-		ServiceName:    serviceName,
-		Today:          time.Now().Format("2006年01月02日"),
-		TableHeader:    fmt.Sprintf(rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY"),
-		Rows:           rows,
-		NewsURLs:       newsUrlList,
-		IsBeforeCutoff: time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
-		HasAnomaly:     detectAnomaly(reports),
+		ServiceName:        serviceName,
+		Today:              time.Now().Format("2006年01月02日"),
+		TableHeader:        fmt.Sprintf(rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY"),
+		Rows:               rows,
+		ServiceTableHeader: fmt.Sprintf(serviceRowFmt, "SERVICE NAME", "BILLED COST"),
+		ServiceTableRows:   serviceTableRows,
+		NewsURLs:           newsUrlList,
+		IsBeforeCutoff:     time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
+		HasAnomaly:         detectAnomaly(reports),
 	}
 }
 
@@ -109,6 +121,8 @@ func BuildPrompt(tmplPath string, data PromptData) (string, error) {
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to render template: %w", err)
 	}
+
+	fmt.Println(buf.String())
 
 	return buf.String(), nil
 }
