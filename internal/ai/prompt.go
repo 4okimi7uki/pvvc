@@ -15,8 +15,6 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
-var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
-
 // vercelBillingCutoffUTCHour はVercelの課金データが確定するUTC時刻です。
 // ref: https://vercel.com/docs/billing
 const vercelBillingCutoffUTCHour = 7
@@ -49,14 +47,12 @@ func detectAnomaly(reports []report.DailyReport) bool {
 const rowFmt = "%-7s  %-12s  %-12s  %-14s  %-12s  %s"
 const serviceRowFmt = "%-40s %s"
 
-func BuildPromptData(reports []report.DailyReport, serviceName string, end time.Time) PromptData {
+func BuildPromptData(reports []report.DailyReport, serviceName string) PromptData {
 	rows := make([]ReportRow, len(reports))
 	var serviceTableRows []ReportRow
-	latestDate := end.AddDate(0, 0, -1).Format("20060102")
-	latestCostByService := reports[0].CostByServices[latestDate]
 
 	for i, r := range reports {
-		date := r.Date.Format("01/02") + fmt.Sprintf("(%s)", weekdaysJa[r.Date.Weekday()])
+		date := r.Date.Format("01/02 (Mon)")
 		pv := humanize.Comma(r.PV)
 		cost := "$" + humanize.CommafWithDigits(r.TotalCost, 2)
 		costJPY := "¥" + humanize.CommafWithDigits(r.TotalCostJPY, 0)
@@ -66,11 +62,14 @@ func BuildPromptData(reports []report.DailyReport, serviceName string, end time.
 		rows[i] = ReportRow{
 			Line: fmt.Sprintf(rowFmt, date, pv, cost, costJPY, costPerPV, rate),
 		}
-	}
-	for _, l := range latestCostByService {
-		serviceTableRows = append(serviceTableRows, ReportRow{
-			Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+humanize.FtoaWithDigits(l.BilledCost, 4)),
-		})
+
+		dateKey := r.Date.Format("20060102")
+		serviceTableRows = append(serviceTableRows, ReportRow{Line: date})
+		for _, l := range r.CostByServices[dateKey] {
+			serviceTableRows = append(serviceTableRows,
+				ReportRow{Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+humanize.FtoaWithDigits(l.BilledCost, 4))})
+		}
+		serviceTableRows = append(serviceTableRows, ReportRow{Line: ""})
 	}
 
 	return PromptData{
@@ -121,8 +120,6 @@ func BuildPrompt(tmplPath string, data PromptData) (string, error) {
 	if err := tmpl.Execute(&buf, data); err != nil {
 		return "", fmt.Errorf("failed to render template: %w", err)
 	}
-
-	fmt.Println(buf.String())
 
 	return buf.String(), nil
 }
