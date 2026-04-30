@@ -1,10 +1,13 @@
 package ga4
 
-func (r *Report) TotalPageViewByDay() map[string]int64 {
-	var total = make(map[string]int64)
+import "github.com/shopspring/decimal"
+
+func (r *Report) TotalPageViewByDay() map[string]decimal.Decimal {
+	var total = make(map[string]decimal.Decimal)
 	for _, row := range r.Rows {
 		key := row.Date
-		total[key] += row.Views
+		views := decimal.NewFromInt(row.Views)
+		total[key] = total[key].Add(views)
 	}
 	return total
 }

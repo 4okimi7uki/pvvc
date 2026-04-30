@@ -31,6 +31,7 @@ func New() *viper.Viper {
 	_ = v.BindEnv("vercel.token", "VERCEL_TOKEN")
 	_ = v.BindEnv("vercel.team_id", "TEAM_ID")
 	_ = v.BindEnv("vercel.project_id", "PROJECT_ID")
+	_ = v.BindEnv("vercel.project_ids", "PROJECT_IDS")
 	_ = v.BindEnv("ga4.property_id", "PROPERTY_ID")
 	_ = v.BindEnv("ga4.credential", "GOOGLE_ANALYTICS_CREDENTIAL")
 	_ = v.BindEnv("ai.gemini_key", "GEMINI_API_KEY")
@@ -69,11 +70,29 @@ func Validate(v *viper.Viper) error {
 // silent wrong output (e.g. costs showing as $0).
 func Warnings(v *viper.Viper) []string {
 	var warns []string
-	if v.GetString("vercel.project_id") == "" {
-		warns = append(warns, "PROJECT_ID is not set — Vercel costs will show as $0 for all days")
+	if GetProjectIDs(v) == nil {
+		warns = append(warns, "PROJECT_ID or PROJECT_IDS is not set — Vercel costs will show as $0 for all days")
 	}
 	if v.GetString("vercel.team_id") == "" {
 		warns = append(warns, "TEAM_ID is not set — fetching personal account billing (not team)")
 	}
 	return warns
+}
+
+func GetProjectIDs(v *viper.Viper) []string {
+	if raw := v.GetString("vercel.project_ids"); raw != "" {
+		var ids []string
+		for id := range strings.SplitSeq(raw, ",") {
+			if trimmed := strings.TrimSpace(id); trimmed != "" {
+				ids = append(ids, trimmed)
+			}
+		}
+		if len(ids) > 0 {
+			return ids
+		}
+	}
+	if id := v.GetString("vercel.project_id"); id != "" {
+		return []string{id}
+	}
+	return nil
 }
