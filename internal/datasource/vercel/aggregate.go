@@ -1,13 +1,14 @@
 package vercel
 
 import (
+	"slices"
 	"sort"
 )
 
-func (r *Report) TotalCostByDay(projectId string) map[string]float64 {
+func (r *Report) TotalCostByDay(projectIds []string) map[string]float64 {
 	var totals = make(map[string]float64)
 	for _, charge := range r.Charges {
-		if charge.Tags.ProjectID == projectId {
+		if !slices.Contains(projectIds, charge.Tags.ProjectID) {
 			key := charge.ChargePeriodStart.Format("20060102")
 			totals[key] += charge.BilledCost
 		}
@@ -15,23 +16,23 @@ func (r *Report) TotalCostByDay(projectId string) map[string]float64 {
 	return totals
 }
 
-func (r *Report) TotalCostByService(projectId string) map[string]float64 {
+func (r *Report) TotalCostByService(projectIds []string) map[string]float64 {
 	var totals = make(map[string]float64)
 	for _, charge := range r.Charges {
-		if charge.Tags.ProjectID == projectId {
+		if !slices.Contains(projectIds, charge.Tags.ProjectID) {
 			totals[charge.ServiceName] += charge.BilledCost
 		}
 	}
 	return totals
 }
 
-func (r *Report) DailyCostByService(projectId string) map[string][]ServiceCost {
+func (r *Report) DailyCostByService(projectIds []string) map[string][]ServiceCost {
 	type ServiceCostMap = map[string]float64
 	type DailyMap = map[string]ServiceCostMap
 	intermediate := make(DailyMap)
 
 	for _, charge := range r.Charges {
-		if charge.Tags.ProjectID != projectId {
+		if !slices.Contains(projectIds, charge.Tags.ProjectID) {
 			continue
 		}
 
