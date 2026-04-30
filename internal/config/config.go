@@ -80,8 +80,16 @@ func Warnings(v *viper.Viper) []string {
 }
 
 func GetProjectIDs(v *viper.Viper) []string {
-	if ids := v.GetStringSlice("vercel.project_ids"); len(ids) > 0 {
-		return ids
+	if raw := v.GetString("vercel.project_ids"); raw != "" {
+		var ids []string
+		for id := range strings.SplitSeq(raw, ",") {
+			if trimmed := strings.TrimSpace(id); trimmed != "" {
+				ids = append(ids, trimmed)
+			}
+		}
+		if len(ids) > 0 {
+			return ids
+		}
 	}
 	if id := v.GetString("vercel.project_id"); id != "" {
 		return []string{id}

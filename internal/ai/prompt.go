@@ -11,8 +11,9 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/4okimi7uki/pvvc/internal/decimalfmt"
 	"github.com/4okimi7uki/pvvc/internal/report"
-	"github.com/dustin/go-humanize"
+	"github.com/shopspring/decimal"
 )
 
 // vercelBillingCutoffUTCHour はVercelの課金データが確定するUTC時刻です。
@@ -35,29 +36,31 @@ func detectAnomaly(reports []report.DailyReport) bool {
 		return false
 	}
 	// 直近2日のコスト比較で1.3倍以上なら異常
-	const anomalyCriteria = 1.3
+	var anomalyCriteria = decimal.NewFromFloat(float64(1.3))
 	latest := reports[len(reports)-1]
 	prev := reports[len(reports)-2]
-	if prev.TotalCost == 0 {
+	if prev.TotalCost.Sign() == 0 {
 		return false
 	}
-	return latest.TotalCost/prev.TotalCost >= anomalyCriteria
+	return latest.TotalCost.Div(prev.TotalCost).GreaterThanOrEqual(anomalyCriteria)
 }
 
 const rowFmt = "%-7s  %-12s  %-12s  %-14s  %-12s  %s"
 const serviceRowFmt = "%-40s %s"
+
+var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
 
 func BuildPromptData(reports []report.DailyReport, serviceName string) PromptData {
 	rows := make([]ReportRow, len(reports))
 	var serviceTableRows []ReportRow
 
 	for i, r := range reports {
-		date := r.Date.Format("01/02 (Mon)")
-		pv := humanize.Comma(r.PV)
-		cost := "$" + humanize.CommafWithDigits(r.TotalCost, 2)
-		costJPY := "¥" + humanize.CommafWithDigits(r.TotalCostJPY, 0)
-		costPerPV := "¥" + humanize.CommafWithDigits(r.TotalCostJPY/float64(r.PV), 4)
-		rate := humanize.CommafWithDigits(r.Rate, 2)
+		date := r.Date.Format("01/02") + fmt.Sprintf("(%s)", weekdaysJa[r.Date.Weekday()])
+		pv := decimalfmt.DecimalCommaf(r.PV, 0)
+		cost := "$" + decimalfmt.DecimalCommaf(r.TotalCost, 2)
+		costJPY := "¥" + decimalfmt.DecimalCommaf(r.TotalCostJPY, 0)
+		costPerPV := "¥" + decimalfmt.DecimalCommaf(r.TotalCostJPY.Div((r.PV)), 4)
+		rate := decimalfmt.DecimalCommaf(r.Rate, 2)
 
 		rows[i] = ReportRow{
 			Line: fmt.Sprintf(rowFmt, date, pv, cost, costJPY, costPerPV, rate),
@@ -67,7 +70,7 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 		serviceTableRows = append(serviceTableRows, ReportRow{Line: date})
 		for _, l := range r.CostByServices[dateKey] {
 			serviceTableRows = append(serviceTableRows,
-				ReportRow{Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+humanize.FtoaWithDigits(l.BilledCost, 4))})
+				ReportRow{Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+decimalfmt.DecimalCommaf(l.BilledCost, 4))})
 		}
 		serviceTableRows = append(serviceTableRows, ReportRow{Line: ""})
 	}
