@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/4okimi7uki/pvvc/internal/decimalfmt"
 	"github.com/4okimi7uki/pvvc/internal/ui"
-	"github.com/dustin/go-humanize"
+	"github.com/shopspring/decimal"
 )
 
 const barWidth = 100
@@ -43,24 +44,28 @@ type Row struct {
 }
 
 func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) {
-	var allPv int64
-	var allCost float64
+	var allPv decimal.Decimal
+	var allCost decimal.Decimal
 
 	// metrics
 	var metricsRows [][]string
 	metricsRows = append(metricsRows, []string{"Date", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV(JPY)", "USD/JPY"})
 	for _, r := range reports {
-		_costPerPVJPY := r.TotalCostJPY / float64(r.PV)
-		allPv += r.PV
-		allCost += r.TotalCost
+
+		var _costPerPVJPY decimal.Decimal
+		if !r.PV.IsZero() {
+			_costPerPVJPY = r.TotalCostJPY.Div(r.PV)
+		}
+		allPv = allPv.Add(r.PV)
+		allCost = allCost.Add(r.TotalCost)
 
 		metricsRows = append(metricsRows, []string{
 			r.Date.Format("01/02 (Mon)"),
-			humanize.Comma(r.PV),
-			humanize.CommafWithDigits(r.TotalCost, 4),
-			humanize.CommafWithDigits(r.TotalCostJPY, 2),
-			humanize.CommafWithDigits(_costPerPVJPY, 4),
-			humanize.CommafWithDigits(r.Rate, 2),
+			decimalfmt.DecimalCommaf(r.PV, 0),
+			decimalfmt.DecimalCommaf(r.TotalCost, 4),
+			decimalfmt.DecimalCommaf(r.TotalCostJPY, 2),
+			decimalfmt.DecimalCommaf(_costPerPVJPY, 4),
+			decimalfmt.DecimalCommaf(r.Rate, 2),
 		})
 
 	}
@@ -72,31 +77,31 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	} else {
 		fmt.Fprintf(&period, "%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))
 	}
-
+	reportsLen := decimal.NewFromInt(int64(len(reports)))
 	summaryRows := []Row{
 		{"Period", period.String()},
 		{"PV", ""},
-		{" ⋅ total", humanize.Comma(allPv)},
-		{" ⋅ avg", humanize.Comma(allPv / int64(len(reports)))},
-		{"Cost Avg", "$" + humanize.CommafWithDigits(allCost/float64(len(reports)), 4)},
+		{" ⋅ total", decimalfmt.DecimalCommaf(allPv, 0)},
+		{" ⋅ avg", decimalfmt.DecimalCommaf(allPv.Div(reportsLen), 0)},
+		{"Cost Avg", "$" + decimalfmt.DecimalCommaf(allCost.Div(reportsLen), 4)},
 	}
 
 	// service
 	var (
-		totalCostByService float64
+		totalCostByService decimal.Decimal
 		costByService      [][]string
 	)
 
 	latestDate := end.AddDate(0, 0, -1).Format("20060102")
 	costByService = append(costByService, []string{"SERVICE NAME", "BILLED COST"})
 	for _, cs := range reports[0].CostByServices[latestDate] {
-		totalCostByService += cs.BilledCost
+		totalCostByService = totalCostByService.Add(cs.BilledCost)
 		costByService = append(costByService,
-			[]string{cs.ServiceName, "$" + humanize.CommafWithDigits(cs.BilledCost, 4)})
+			[]string{cs.ServiceName, "$" + decimalfmt.DecimalCommaf(cs.BilledCost, 4)})
 	}
 	costByService = append(costByService,
 		[]string{"---", "---"},
-		[]string{"TOTAL", humanize.CommafWithDigits(totalCostByService, 4)},
+		[]string{"TOTAL", "$" + decimalfmt.DecimalCommaf(totalCostByService, 4)},
 	)
 
 	// Print
@@ -128,28 +133,29 @@ func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
 	otherReports := reports[:len(reports)-1]
 	latest := reports[len(reports)-1]
 
-	var sumPV int64
-	var sumCost float64
+	var sumPV decimal.Decimal
+	var sumCost decimal.Decimal
 	for _, r := range otherReports {
-		sumPV += r.PV
-		sumCost += r.TotalCost
+		sumPV = sumPV.Add(r.PV)
+		sumCost = sumCost.Add(r.TotalCost)
 	}
-	avgPV := float64(sumPV) / float64(len(otherReports))
-	avgCost := sumCost / float64(len(otherReports))
+	otherReportsLen := decimal.NewFromInt(int64(len(otherReports)))
+	avgPV := sumPV.Div(otherReportsLen)
+	avgCost := sumCost.Div(otherReportsLen)
 
-	pvChangePct := (float64(latest.PV) - avgPV) / avgPV * 100
-	costChangePct := (latest.TotalCost - avgCost) / avgCost * 100
+	pvChangePct := (latest.PV.Sub(avgPV)).Div(avgPV).Mul(decimal.NewFromInt(100))
+	costChangePct := (latest.TotalCost.Sub(avgCost)).Div(avgCost).Mul(decimal.NewFromInt(100))
 
-	formatPct := func(pct float64) string {
-		if pct >= 0 {
-			return fmt.Sprintf("+%.1f%%", pct)
+	formatPct := func(pct decimal.Decimal) string {
+		if pct.Sign() >= 0 {
+			return fmt.Sprintf("+%s%%", decimalfmt.DecimalCommaf(pct, 1))
 		}
-		return fmt.Sprintf("%.1f%%", pct)
+		return fmt.Sprintf("%s%%", pct)
 	}
 
 	return []Row{
 		{"Date", latest.Date.Format("2006/01/02") + fmt.Sprintf(" (%s)", weekdaysJa[latest.Date.Weekday()])},
-		{"PV", fmt.Sprintf("%s   ----------   %s 　vs 7d avg", humanize.Comma(latest.PV), formatPct(pvChangePct))},
-		{"Cost", fmt.Sprintf("$%s   ----------   %s 　vs 7d avg", humanize.CommafWithDigits(latest.TotalCost, 2), formatPct(costChangePct))},
+		{"PV", fmt.Sprintf("%s   ----------   %s 　vs 7d avg", decimalfmt.DecimalCommaf(latest.PV, 0), formatPct(pvChangePct))},
+		{"Cost", fmt.Sprintf("$%s   ----------   %s 　vs 7d avg", decimalfmt.DecimalCommaf(latest.TotalCost, 2), formatPct(costChangePct))},
 	}
 }

@@ -4,13 +4,14 @@ import (
 	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
+	"github.com/shopspring/decimal"
 )
 
 type DailyReport struct {
 	Date           time.Time
-	PV             int64
-	TotalCost      float64
-	TotalCostJPY   float64
-	Rate           float64
+	PV             decimal.Decimal
+	TotalCost      decimal.Decimal
+	TotalCostJPY   decimal.Decimal
+	Rate           decimal.Decimal
 	CostByServices map[string][]vercel.ServiceCost
 }

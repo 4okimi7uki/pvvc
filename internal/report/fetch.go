@@ -10,6 +10,7 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/ui"
+	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 )
@@ -23,10 +24,10 @@ func FetchDailyReport(
 	end time.Time,
 	addDone func(string),
 ) ([]DailyReport, error) {
-	var pvs map[string]int64
-	var totalCosts map[string]float64
+	var pvs map[string]decimal.Decimal
+	var totalCosts map[string]decimal.Decimal
 	var dailyCostByService map[string][]vercel.ServiceCost
-	var rates map[string]float64
+	var rates map[string]decimal.Decimal
 
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -100,7 +101,7 @@ func FetchDailyReport(
 			Date:           d,
 			PV:             pvs[key],
 			TotalCost:      cost,
-			TotalCostJPY:   cost * rate,
+			TotalCostJPY:   cost.Mul(rate),
 			Rate:           rate,
 			CostByServices: dailyCostByService,
 		})

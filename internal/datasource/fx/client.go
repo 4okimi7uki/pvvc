@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
-func FetchUSDToJPY(start time.Time, end time.Time) (map[string]float64, error) {
+func FetchUSDToJPY(start time.Time, end time.Time) (map[string]decimal.Decimal, error) {
 	url := fmt.Sprintf("https://api.frankfurter.dev/v2/rates?base=USD&quotes=JPY&from=%s&to=%s", start.Format("2006-01-02"), end.Format("2006-01-02"))
 	req, err := http.NewRequest("GET", url, nil)
 
@@ -33,16 +35,16 @@ func FetchUSDToJPY(start time.Time, end time.Time) (map[string]float64, error) {
 	}
 
 	var response []struct {
-		Date  string  `json:"date"`
-		Base  string  `json:"base"`
-		Quote string  `json:"quote"`
-		Rate  float64 `json:"rate"`
+		Date  string      `json:"date"`
+		Base  string      `json:"base"`
+		Quote string      `json:"quote"`
+		Rate  json.Number `json:"rate"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("fx: failed to decode response: %w", err)
 	}
 
-	results := make(map[string]float64)
+	results := make(map[string]decimal.Decimal)
 
 	for _, r := range response {
 		date, err := time.Parse("2006-01-02", r.Date)
@@ -50,7 +52,7 @@ func FetchUSDToJPY(start time.Time, end time.Time) (map[string]float64, error) {
 			return nil, err
 		}
 		key := date.Format("20060102")
-		results[key] = r.Rate
+		results[key], _ = decimal.NewFromString(r.Rate.String())
 	}
 
 	return results, nil
