@@ -1,9 +1,10 @@
 package config
 
 type VercelConfig struct {
-	Token     string `toml:"token"`
-	TeamId    string `toml:"team_id"`
-	ProjectId string `toml:"project_id"`
+	Token      string `toml:"token"`
+	TeamId     string `toml:"team_id"`
+	ProjectId  string `toml:"project_id"`
+	ProjectIds string `toml:"project_ids"`
 }
 
 type Ga4Config struct {

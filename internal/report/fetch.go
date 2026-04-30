@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/fx"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
@@ -53,15 +54,15 @@ func FetchDailyReport(
 			return fmt.Errorf("failed to fetch Vercel billing: %w", err)
 		}
 
-		projectId := v.GetString("vercel.project_id")
+		projectIds := config.GetProjectIDs(v)
 		ieg, _ := errgroup.WithContext(ctx)
 
 		ieg.Go(func() error {
-			totalCosts = cost.TotalCostByDay(projectId)
+			totalCosts = cost.TotalCostByDay(projectIds)
 			return nil
 		})
 		ieg.Go(func() error {
-			dailyCostByService = cost.DailyCostByService(projectId)
+			dailyCostByService = cost.DailyCostByService(projectIds)
 			return nil
 		})
 		if err = ieg.Wait(); err != nil {
