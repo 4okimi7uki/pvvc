@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/fx"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/ui"
+	"github.com/shopspring/decimal"
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 )
@@ -22,10 +24,10 @@ func FetchDailyReport(
 	end time.Time,
 	addDone func(string),
 ) ([]DailyReport, error) {
-	var pvs map[string]int64
-	var totalCosts map[string]float64
+	var pvs map[string]decimal.Decimal
+	var totalCosts map[string]decimal.Decimal
 	var dailyCostByService map[string][]vercel.ServiceCost
-	var rates map[string]float64
+	var rates map[string]decimal.Decimal
 
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -53,15 +55,15 @@ func FetchDailyReport(
 			return fmt.Errorf("failed to fetch Vercel billing: %w", err)
 		}
 
-		projectId := v.GetString("vercel.project_id")
+		projectIds := config.GetProjectIDs(v)
 		ieg, _ := errgroup.WithContext(ctx)
 
 		ieg.Go(func() error {
-			totalCosts = cost.TotalCostByDay(projectId)
+			totalCosts = cost.TotalCostByDay(projectIds)
 			return nil
 		})
 		ieg.Go(func() error {
-			dailyCostByService = cost.DailyCostByService(projectId)
+			dailyCostByService = cost.DailyCostByService(projectIds)
 			return nil
 		})
 		if err = ieg.Wait(); err != nil {
@@ -99,7 +101,7 @@ func FetchDailyReport(
 			Date:           d,
 			PV:             pvs[key],
 			TotalCost:      cost,
-			TotalCostJPY:   cost * rate,
+			TotalCostJPY:   cost.Mul(rate),
 			Rate:           rate,
 			CostByServices: dailyCostByService,
 		})
