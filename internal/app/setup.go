@@ -38,25 +38,57 @@ func RunSetup() error {
 			huh.NewGroup(
 				huh.NewNote().
 					Title("Vercel").
-					Description("Enter your Vercel credentials."),
-				huh.NewInput().Title("Token").EchoMode(huh.EchoModePassword).Value(&configs.Vercel.Token),
-				huh.NewInput().Title("Team ID").EchoMode(huh.EchoModeNormal).Value(&configs.Vercel.TeamId),
-				huh.NewInput().Title("Project ID").EchoMode(huh.EchoModeNormal).Value(&configs.Vercel.ProjectId),
+					Description("Billing API credentials.\nFind your token at: vercel.com/account/tokens"),
+				huh.NewInput().
+					Title("Token").
+					EchoMode(huh.EchoModePassword).
+					Value(&configs.Vercel.Token),
+				huh.NewInput().
+					Title("Team ID").
+					Description("Settings → General → Team ID  (leave blank for personal accounts)").
+					EchoMode(huh.EchoModeNormal).
+					Value(&configs.Vercel.TeamId),
+				huh.NewInput().
+					Title("Project IDs").
+					Description("Settings → General → Project ID\nComma-separated for multiple projects: prj_aaa,prj_bbb").
+					EchoMode(huh.EchoModeNormal).
+					Value(&configs.Vercel.ProjectIds),
 			),
 			huh.NewGroup(
 				huh.NewNote().
 					Title("Google Analytics 4").
-					Description("Enter your GA4 credentials."),
-				huh.NewInput().Title("Property ID").Validate(isInt).EchoMode(huh.EchoModeNormal).Value(&configs.Ga4.PropertyId),
-				huh.NewInput().Title("Google Analytics Credential").EchoMode(huh.EchoModeNormal).Value(&configs.Ga4.Credential),
+					Description("Pageview data source.\nSet up at: console.cloud.google.com"),
+				huh.NewInput().
+					Title("Property ID").
+					Description("Admin → Property Settings → Property ID (numeric)").
+					Validate(isInt).
+					EchoMode(huh.EchoModeNormal).
+					Value(&configs.Ga4.PropertyId),
+				huh.NewInput().
+					Title("Credential").
+					Description("Service account JSON compressed to one line:\ncat key.json | tr -d '\\n'").
+					EchoMode(huh.EchoModeNormal).
+					Value(&configs.Ga4.Credential),
 			),
 			huh.NewGroup(
 				huh.NewNote().
 					Title("Additional Settings").
-					Description("Enter your AI and notification settings."),
-				huh.NewInput().Title("Gemini API Key").EchoMode(huh.EchoModePassword).Value(&configs.Ai.GeminiKey),
-				huh.NewInput().Title("Slack Webhook").EchoMode(huh.EchoModePassword).Value(&configs.Slack.WebhookUrl),
-				huh.NewInput().Title("Service Name").EchoMode(huh.EchoModeNormal).Value(&configs.Service.Name),
+					Description("All optional — leave blank to skip each feature."),
+				huh.NewInput().
+					Title("Gemini API Key").
+					Description("AI trend analysis. Skip to disable.  → aistudio.google.com/app/apikey").
+					EchoMode(huh.EchoModePassword).
+					Value(&configs.Ai.GeminiKey),
+				huh.NewInput().
+					Title("Slack Webhook URL").
+					Description("Required for --notify flag.  → api.slack.com/messaging/webhooks").
+					EchoMode(huh.EchoModePassword).
+					Value(&configs.Slack.WebhookUrl),
+				huh.NewInput().
+					Title("Service Name").
+					Description("Display name shown in reports and Slack messages.").
+					EchoMode(huh.EchoModeNormal).
+					Value(&configs.Service.Name),
 			),
 		).WithTheme(pvvcTheme())
 		if err := form.Run(); err != nil {
@@ -69,7 +101,9 @@ func RunSetup() error {
 			return err
 		}
 
-		fmt.Printf("%s Successfully saved config:\n%s\n", ui.Green("✔"), path)
+		fmt.Printf("\n %s Config saved!\n", ui.Green("✔"))
+		fmt.Printf("   %s\n\n", ui.LimeYellow(path))
+		fmt.Printf("   %s\n\n", ui.MossGray("Run `pvvc report` to get started."))
 	}
 	return nil
 }
