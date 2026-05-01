@@ -14,36 +14,40 @@
 
 ### Vercel
 
-| 環境変数 | config.toml キー | 必須 | 説明 |
-| --- | --- | :---: | --- |
-| `VERCEL_TOKEN` | `vercel.token` | ✅ | Vercel のアクセストークン |
-| `TEAM_ID` | `vercel.team_id` | ⚠️ | チーム ID。未設定の場合は個人アカウントのみ対象 |
-| `PROJECT_ID` | `vercel.project_id` | ⚠️ | プロジェクト ID。未設定だとコストが $0 になる |
+| 環境変数       | config.toml キー     | 必須 | 説明                                                                                                             |
+| -------------- | -------------------- | :--: | ---------------------------------------------------------------------------------------------------------------- |
+| `VERCEL_TOKEN` | `vercel.token`       |  ✅  | Vercel のアクセストークン                                                                                        |
+| `TEAM_ID`      | `vercel.team_id`     |  ⚠️  | チーム ID。未設定の場合は個人アカウントのみ対象                                                                  |
+| `PROJECT_ID`   | `vercel.project_id`  |  ⚠️  | 単一プロジェクトの ID。未設定だとコストが $0 になる                                                              |
+| `PROJECT_IDS`  | `vercel.project_ids` |  ⚠️  | 複数プロジェクトをまとめて集計する場合はカンマ区切りで指定（例: `prj_aaa,prj_bbb`）。`PROJECT_ID` より優先される |
+
+> `PROJECT_ID` と `PROJECT_IDS` の両方を設定した場合は `PROJECT_IDS` が優先されます。  
+> どちらも未設定の場合、Vercel コストは全日 $0 になります。
 
 ### GA4
 
-| 環境変数 | config.toml キー | 必須 | 説明 |
-| --- | --- | :---: | --- |
-| `PROPERTY_ID` | `ga4.property_id` | ✅ | GA4 プロパティ ID（数値文字列） |
-| `GOOGLE_ANALYTICS_CREDENTIAL` | `ga4.credential` | ✅ | サービスアカウントの JSON を1行に圧縮した文字列 |
+| 環境変数                      | config.toml キー  | 必須 | 説明                                            |
+| ----------------------------- | ----------------- | :--: | ----------------------------------------------- |
+| `PROPERTY_ID`                 | `ga4.property_id` |  ✅  | GA4 プロパティ ID（数値文字列）                 |
+| `GOOGLE_ANALYTICS_CREDENTIAL` | `ga4.credential`  |  ✅  | サービスアカウントの JSON を1行に圧縮した文字列 |
 
 ### AI
 
-| 環境変数 | config.toml キー | 必須 | 説明 |
-| --- | --- | :---: | --- |
-| `GEMINI_API_KEY` | `ai.gemini_key` | - | Gemini API キー。未設定の場合は AI 分析をスキップ |
+| 環境変数         | config.toml キー | 必須 | 説明                                              |
+| ---------------- | ---------------- | :--: | ------------------------------------------------- |
+| `GEMINI_API_KEY` | `ai.gemini_key`  |  -   | Gemini API キー。未設定の場合は AI 分析をスキップ |
 
 ### Slack
 
-| 環境変数 | config.toml キー | 必須 | 説明 |
-| --- | --- | :---: | --- |
-| `SLACK_WEBHOOK_URL` | `slack.webhook_url` | - | Incoming Webhook URL。`--notify` 使用時のみ必要 |
+| 環境変数            | config.toml キー    | 必須 | 説明                                            |
+| ------------------- | ------------------- | :--: | ----------------------------------------------- |
+| `SLACK_WEBHOOK_URL` | `slack.webhook_url` |  -   | Incoming Webhook URL。`--notify` 使用時のみ必要 |
 
 ### Service
 
-| 環境変数 | config.toml キー | 必須 | 説明 |
-| --- | --- | :---: | --- |
-| `TARGET_WEBSITE_NAME` | `service.name` | - | サービス名。レポートや Slack メッセージに表示される |
+| 環境変数              | config.toml キー | 必須 | 説明                                                |
+| --------------------- | ---------------- | :--: | --------------------------------------------------- |
+| `TARGET_WEBSITE_NAME` | `service.name`   |  -   | サービス名。レポートや Slack メッセージに表示される |
 
 ---
 
@@ -53,7 +57,8 @@
 [vercel]
 token = "your_vercel_token"
 team_id = "team_xxxxxxxx"
-project_id = "prj_xxxxxxxx"
+project_id = "prj_xxxxxxxx"          # 単一プロジェクトの場合
+project_ids = "prj_aaa,prj_bbb"   # 複数プロジェクトをまとめて集計する場合
 
 [ga4]
 property_id = "123456789"
@@ -76,7 +81,8 @@ name = "Your Site Name"
 ```env
 VERCEL_TOKEN=your_vercel_token
 TEAM_ID=team_xxxxxxxx
-PROJECT_ID=prj_xxxxxxxx
+PROJECT_ID=prj_xxxxxxxx              # 単一プロジェクトの場合
+PROJECT_IDS=prj_aaa,prj_bbb       # 複数プロジェクトをまとめて集計する場合
 
 PROPERTY_ID=123456789
 GOOGLE_ANALYTICS_CREDENTIAL={"type":"service_account",...}

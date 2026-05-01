@@ -109,6 +109,10 @@ gemini-3-flash-preview
 2. `.env` ファイル（godotenv）
 3. `~/.config/pvvc/config.toml`
 
+Vercel のプロジェクト ID は `GetProjectIDs()` で解決されます。  
+`PROJECT_IDS`（カンマ区切り）→ `PROJECT_ID`（単一）の順で参照し、どちらも未設定の場合は `nil` を返します。  
+複数 ID を指定するとそれらのコストが合算されてレポートに反映されます。
+
 ### `prompts/analyze.tmpl`
 
 Go の `text/template` 形式のプロンプトテンプレートです。  
