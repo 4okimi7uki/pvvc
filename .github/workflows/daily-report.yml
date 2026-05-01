@@ -23,6 +23,7 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       TEAM_ID: ${{ secrets.TEAM_ID }}
       PROJECT_ID: ${{ secrets.PROJECT_ID }}
+      PROJECT_IDS: ${{ secrets.PROJECT_IDS }}
       PROPERTY_ID: ${{ secrets.PROPERTY_ID }}
       GOOGLE_ANALYTICS_CREDENTIAL: ${{ secrets.GOOGLE_ANALYTICS_CREDENTIAL }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
