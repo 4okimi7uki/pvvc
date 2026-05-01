@@ -71,10 +71,13 @@ func Validate(v *viper.Viper) error {
 func Warnings(v *viper.Viper) []string {
 	var warns []string
 	if GetProjectIDs(v) == nil {
-		warns = append(warns, "PROJECT_ID or PROJECT_IDS is not set — Vercel costs will show as $0 for all days")
+		warns = append(warns, "PROJECT_IDS is not set — Vercel costs will show as $0 for all days")
 	}
 	if v.GetString("vercel.team_id") == "" {
 		warns = append(warns, "TEAM_ID is not set — fetching personal account billing (not team)")
+	}
+	if v.GetString("vercel.project_id") != "" && v.GetString("vercel.project_ids") == "" {
+		warns = append(warns, "PROJECT_ID is deprecated — migrate to PROJECT_IDS (e.g. PROJECT_IDS=prj_xxxxxxxx)")
 	}
 	return warns
 }

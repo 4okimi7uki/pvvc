@@ -74,8 +74,9 @@ func init() {
 func runWith(fn func(ctx context.Context) error) error {
 	executeTime := time.Now()
 
+	resolvedVersion := gh.ResolvedVersion()
 	ctx := context.Background()
-	ui.PrintLogo()
+	ui.PrintLogo(resolvedVersion)
 
 	configWarnings := config.Warnings(cfg)
 	if len(configWarnings) > 0 {
