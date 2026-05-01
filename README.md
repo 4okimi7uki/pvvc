@@ -99,7 +99,8 @@ pvvc init
 # Vercel
 VERCEL_TOKEN=<Vercel API Token>
 TEAM_ID=<Vercel Team ID>
-PROJECT_ID=<Vercel Project ID>
+PROJECT_ID=<Vercel Project ID>        # 単一プロジェクトの場合
+PROJECT_IDS=<id1,id2,id3>             # 複数プロジェクトを集計する場合（カンマ区切り）
 
 # Google Analytics 4
 PROPERTY_ID=<GA4 Property ID>
