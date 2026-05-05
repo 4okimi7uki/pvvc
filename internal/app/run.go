@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/auth/credentials"
-	"github.com/4okimi7uki/pvvc/internal/ai/gemini"
+	"github.com/4okimi7uki/pvvc/internal/ai"
 	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
@@ -52,10 +52,7 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool
 	var reports []report.DailyReport
 	err = ui.WithSpinner("Fetching...", func(update func(string), addDone func(string)) error {
 		reports, err = report.FetchDailyReport(v, ctx, ga4Client, vercelClient, start, end, addDone)
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	if err != nil {
 		return []report.DailyReport{}, err
@@ -81,20 +78,17 @@ func printRawResponses(ga4Client *ga4.Client, vercelClient *vercel.Client) {
 	}
 }
 
-func RunAnalysis(v *viper.Viper, ctx context.Context, reports []report.DailyReport, promptPath string) (string, error) {
-	// TODO: AIを外から切り替えられるようにする
+func RunAnalysis(analyzer ai.Analyzer, ctx context.Context, reports []report.DailyReport) (string, error) {
 	var analysisResult string
-	geminiKey := v.GetString("ai.gemini_key")
-	if geminiKey != "" {
-		aiClient := gemini.New(geminiKey, v.GetString("service.name"), promptPath)
-		err := ui.WithSpinner("Analyzing...", func(update func(string), addDone func(string)) error {
-			var err error
-			analysisResult, err = aiClient.Analyze(ctx, reports, update)
+	err := ui.WithSpinner("Analyzing...", func(update func(string), addDone func(string)) error {
+		var err error
+		if analysisResult, err = analyzer.Analyze(ctx, reports, update); err != nil {
 			return err
-		})
-		if err != nil {
-			return "", fmt.Errorf("ai analysis: %w", err)
 		}
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("ai analysis: %w", err)
 	}
 	return analysisResult, nil
 }

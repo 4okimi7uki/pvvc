@@ -21,7 +21,7 @@ var reportCmd = &cobra.Command{
 			}
 
 			if !quiet {
-				report.PrintSomeDayReports(from, to, rep, "")
+				report.PrintSomeDayReports(from, to, rep, "", "")
 			}
 
 			return nil

@@ -7,5 +7,5 @@ import (
 )
 
 type Analyzer interface {
-	Analyze(ctx context.Context, req []report.DailyReport) (string, error)
+	Analyze(ctx context.Context, req []report.DailyReport, update func(string)) (string, error)
 }
