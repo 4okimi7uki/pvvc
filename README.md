@@ -108,6 +108,7 @@ GOOGLE_ANALYTICS_CREDENTIAL=<Service Account JSON string>
 
 # AI
 GEMINI_API_KEY=<Gemini API Key>
+CLAUDE_API_KEY=<Claude API Key>
 
 # Slack
 SLACK_WEBHOOK_URL=<Incoming Webhook URL>
