@@ -6,13 +6,21 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: "Deployment stage"
+        description: "Slack environment"
         required: true
         default: "prod"
         type: choice
         options:
           - dev
           - prod
+      llm:
+        description: "LLM for analyzing"
+        required: false
+        default: "gemini"
+        type: choice
+        options:
+          - gemini
+          - claude
 
 jobs:
   report:
@@ -27,12 +35,13 @@ jobs:
       PROPERTY_ID: ${{ secrets.PROPERTY_ID }}
       GOOGLE_ANALYTICS_CREDENTIAL: ${{ secrets.GOOGLE_ANALYTICS_CREDENTIAL }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       TARGET_WEBSITE_NAME: ${{ secrets.TARGET_WEBSITE_NAME }}
       WEBHOOK_PROD: ${{ secrets.WEBHOOK_PROD }}
       WEBHOOK_DEV: ${{ secrets.WEBHOOK_DEV }}
 
     steps:
-      - name: Set stage env
+      - name: Set Slack webhook URL
         run: |
           STAGE="${{ inputs.stage || 'prod' }}"
           if [ "$STAGE" = "prod" ]; then
@@ -60,8 +69,12 @@ jobs:
 
       - name: Analyze and notify Slack
         run: |
+          LLM="${{ inputs.llm || 'gemini' }}"
           for i in 1 2 3; do
-            pvvc analyze --prompt prompt.tmpl --notify --quiet && exit 0
+            pvvc analyze \
+            --llm "$LLM" \
+            --prompt prompt.tmpl \
+            --notify --quiet && exit 0
             [ $i -lt 3 ] && echo "Attempt $i failed. Retrying in 30s..." && sleep 30
           done
           exit 1
