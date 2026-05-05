@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	cloud.google.com/go/auth v0.20.0
-	github.com/anthropics/anthropic-sdk-go v1.39.0
+	github.com/anthropics/anthropic-sdk-go v1.40.0
 	github.com/briandowns/spinner v1.23.2
 	github.com/charmbracelet/huh v1.0.0
 	github.com/charmbracelet/lipgloss v1.1.0
