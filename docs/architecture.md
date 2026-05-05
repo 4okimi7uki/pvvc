@@ -24,9 +24,11 @@ pvvc/
 │   │   ├── vercel/       # Vercel Billing API クライアント
 │   │   └── fx/           # 為替レート取得（Frankfurter API）
 │   ├── ai/               # AI 分析
+│   │   ├── ai.go         # Analyzer interface
 │   │   ├── models.go     # PromptData / ReportRow 型定義
 │   │   ├── prompt.go     # プロンプトのビルド（テンプレート処理）
-│   │   └── gemini/       # Gemini クライアント実装
+│   │   ├── gemini/       # Gemini クライアント実装
+│   │   └── claude/       # Claude クライアント実装
 │   ├── report/           # レポートの集計・整形・表示
 │   ├── slack/            # Slack Incoming Webhook 送信
 │   ├── ui/               # ターミナル UI（カラー・スピナー・ロゴ）
@@ -55,7 +57,7 @@ flowchart TD
     end
     FDR["③ FetchDailyReport()\nDailyReport[]"]
     subgraph ai["④ AI Analyze（analyze のみ）"]
-        BPD["BuildPromptData()"] --> BP["BuildPrompt()\n.tmpl 適用"] --> GEM["gemini.Analyze()"]
+        BPD["BuildPromptData()"] --> BP["BuildPrompt()\n.tmpl 適用"] --> GEM["Analyzer.Analyze()\ngemini / claude"]
     end
     TABLE["⑤ ターミナル出力"]
     SLACK["⑤ slack.Send()\n--notify 時"]
@@ -86,10 +88,14 @@ GA4・Vercel・FX それぞれが `errgroup` で並列実行されます。
 
 ### `internal/ai`
 
-プロンプトのビルドと Gemini との通信を分離しています。
+プロンプトのビルドと AI クライアントの通信を分離しています。
 
+- `ai.go` — `Analyzer` interface を定義。`Analyze(ctx, reports, update)` を満たす実装であればどの LLM でも差し替え可能
 - `prompt.go` — テンプレートファイル（ローカルパスまたは URL）を読み込み、`PromptData` を埋め込んで文字列を生成
 - `gemini/client.go` — Gemini API の呼び出し。レートリミット（429/503）時は次のモデルへフォールバックし、各モデルで最大3回リトライ
+- `claude/client.go` — Claude API の呼び出し。同様にモデルフォールバックとリトライに対応
+
+使用する LLM は `pvvc analyze --llm` フラグで切り替えます（デフォルト: `gemini`）。
 
 **Gemini モデルのフォールバック順:**
 
@@ -99,7 +105,14 @@ gemini-3-flash-preview
     → (rate limit) gemini-2.5-flash
 ```
 
-新しいモデルが追加されたら `internal/ai/gemini/client.go` の `geminiModels` スライスを更新してください。
+**Claude モデルのフォールバック順:**
+
+```
+claude-sonnet-4-6
+  → (rate limit) claude-opus-4-7
+```
+
+新しいモデルが追加されたら各クライアントの `*Models` スライスを更新してください。
 
 ### `internal/config`
 
