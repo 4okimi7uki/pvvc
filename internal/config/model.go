@@ -14,6 +14,7 @@ type Ga4Config struct {
 
 type AiConfig struct {
 	GeminiKey string `toml:"gemini_key"`
+	ClaudeKey string `toml:"claude_key"`
 }
 
 type SlackConfig struct {

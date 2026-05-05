@@ -76,9 +76,14 @@ func RunSetup() error {
 					Description("All optional — leave blank to skip each feature."),
 				huh.NewInput().
 					Title("Gemini API Key").
-					Description("AI trend analysis. Skip to disable.  → aistudio.google.com/app/apikey").
+					Description("AI trend analysis (default). Skip to disable.  → aistudio.google.com/app/apikey").
 					EchoMode(huh.EchoModePassword).
 					Value(&configs.Ai.GeminiKey),
+				huh.NewInput().
+					Title("Claude API Key").
+					Description("Alternative AI provider (--llm claude). Skip to disable.  → console.anthropic.com").
+					EchoMode(huh.EchoModePassword).
+					Value(&configs.Ai.ClaudeKey),
 				huh.NewInput().
 					Title("Slack Webhook URL").
 					Description("Required for --notify flag.  → api.slack.com/messaging/webhooks").
