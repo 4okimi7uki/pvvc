@@ -2,7 +2,11 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/4okimi7uki/pvvc/internal/ai"
+	"github.com/4okimi7uki/pvvc/internal/ai/claude"
+	"github.com/4okimi7uki/pvvc/internal/ai/gemini"
 	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/slack"
@@ -29,10 +33,21 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			// ai analyze
-			analysisResult, err := app.RunAnalysis(cfg, ctx, rep, promptPath)
+			var analyzer ai.Analyzer
+			serviceName := cfg.GetString("service.name")
+			if key := cfg.GetString("ai.claude_key"); key != "" {
+				analyzer = claude.New(key, serviceName, promptPath)
+			} else if key := cfg.GetString("ai.gemini_key"); key != "" {
+				analyzer = gemini.New(key, serviceName, promptPath)
+			} else {
+				return fmt.Errorf("no AI key configured")
+			}
+
+			analysisResult, err := app.RunAnalysis(analyzer, ctx, rep)
 			if err != nil {
 				return err
 			}
+
 			if !quiet {
 				report.PrintSomeDayReports(from, to, rep, analysisResult)
 			}
