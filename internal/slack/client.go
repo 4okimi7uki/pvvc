@@ -14,6 +14,8 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/retry"
 )
 
+const slackTextMaxLength = 3000
+
 type Client struct {
 	webhookURL  string
 	httpClient  *http.Client
@@ -94,7 +96,7 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 				Type: "section",
 				Text: &TextObject{
 					Type: "mrkdwn",
-					Text: truncate(text, 3000),
+					Text: truncate(text, slackTextMaxLength),
 				},
 			},
 		},
@@ -111,7 +113,6 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 		}
 		req.Header.Set("Content-Type", "application/json")
 		resp, e = c.httpClient.Do(req)
-
 		return e
 	}); err != nil {
 		return fmt.Errorf("slack: request failed %w", err)

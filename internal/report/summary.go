@@ -43,7 +43,7 @@ type Row struct {
 	Value string
 }
 
-func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string) {
+func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string, llm string) {
 	var allPv decimal.Decimal
 	var allCost decimal.Decimal
 
@@ -78,13 +78,17 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 		fmt.Fprintf(&period, "%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))
 	}
 	reportsLen := decimal.NewFromInt(int64(len(reports)))
-	summaryRows := []Row{
+	var summaryRows []Row
+	if llm != "" {
+		summaryRows = append(summaryRows, Row{"LLM", llm}, Row{"", ""})
+	}
+	summaryRows = append(summaryRows, []Row{
 		{"Period", period.String()},
 		{"PV", ""},
 		{" ⋅ total", decimalfmt.DecimalCommaf(allPv, 0)},
 		{" ⋅ avg", decimalfmt.DecimalCommaf(allPv.Div(reportsLen), 0)},
 		{"Cost Avg", "$" + decimalfmt.DecimalCommaf(allCost.Div(reportsLen), 4)},
-	}
+	}...)
 
 	// service
 	var (
