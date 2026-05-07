@@ -154,7 +154,7 @@ func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
 		if pct.Sign() >= 0 {
 			return fmt.Sprintf("+%s%%", decimalfmt.DecimalCommaf(pct, 1))
 		}
-		return fmt.Sprintf("%s%%", pct)
+		return fmt.Sprintf("%s%%", decimalfmt.DecimalCommaf(pct, 1))
 	}
 
 	return []Row{
