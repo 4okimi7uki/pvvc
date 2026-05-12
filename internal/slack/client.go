@@ -8,9 +8,10 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/httpclient"
-	"github.com/4okimi7uki/pvvc/internal/report"
+	rep "github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
 )
 
@@ -49,14 +50,23 @@ type blockPayload struct {
 	Blocks []Block `json:"blocks"`
 }
 
-func (c *Client) Send(ctx context.Context, text string, summary []report.Row) error {
+func (c *Client) Send(ctx context.Context, text string, end time.Time, report []rep.DailyReport) error {
+	summary := rep.LatestDaySummary(end, report)
+	costByService := rep.LatestServiceCosts(end, report)
+
 	var sb strings.Builder
+	var costDetail strings.Builder
 	sb.WriteString("*Summary*\n")
 
 	for _, row := range summary {
 		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
 	}
+	for _, row := range costByService {
+		fmt.Fprintf(&costDetail, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
+
+	}
 	summaryText := sb.String()
+	costDetailText := costDetail.String()
 	headingTitle := fmt.Sprintf("📊 %s Daily Report", c.serviceName)
 
 	body, err := json.Marshal(blockPayload{
@@ -99,6 +109,13 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 					Text: truncate(text, slackTextMaxLength),
 				},
 			},
+			{
+				Type: "section",
+				Text: &TextObject{
+					Type: "mrkdwn",
+					Text: truncate(costDetailText, slackTextMaxLength),
+				},
+			},
 		},
 	})
 	if err != nil {
@@ -125,7 +142,7 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("slack: unexpected status %d: %s", resp.StatusCode, string(body))
 	}
-	report.PrintSection("Notification")
+	rep.PrintSection("Notification")
 	fmt.Println()
 	fmt.Println(" Sent the analysis result to Slack 🔔")
 	fmt.Println()

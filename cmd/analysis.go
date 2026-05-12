@@ -69,8 +69,8 @@ var analyzeCmd = &cobra.Command{
 				if err != nil {
 					return err
 				}
-				summary := report.LatestDaySummary(to, rep)
-				err = slackClient.Send(ctx, analysisResult, summary)
+				// summary := report.LatestDaySummary(to, rep)
+				err = slackClient.Send(ctx, analysisResult, to, rep)
 
 				if err != nil {
 					return err
