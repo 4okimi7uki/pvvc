@@ -30,7 +30,6 @@ func WriteTable(w io.Writer, rows [][]string) {
 		}
 		fmt.Fprintln(w)
 	}
-	fmt.Fprintln(w)
 }
 
 func RowsToCells(rows []Row) [][]string {
