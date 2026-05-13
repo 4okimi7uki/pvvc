@@ -71,16 +71,10 @@ func (c *Client) Send(ctx context.Context, text string, end time.Time, report []
 	rep.WriteTable(&costDetail, rep.RowsToCells(costByService))
 	fmt.Fprint(&costDetail, "```")
 
-	var linkList []rep.Row
 	if c.vercelProjectURL != "" {
-		linkList = append(linkList, []rep.Row{
-			{Label: "Usage", Value: c.vercelProjectURL + "/usage"},
-			{Label: "Logs", Value: c.vercelProjectURL + "/logs"},
-		}...)
-	}
-	fmt.Fprint(&linkSection, "🔗 *Links*\n")
-	for _, l := range linkList {
-		fmt.Fprintf(&linkSection, " - <%s|%s>\n", l.Value, l.Label)
+		fmt.Fprint(&linkSection, "🔗 *Links*\n")
+		fmt.Fprintf(&linkSection, " - <%s/usage|Usage>\n", c.vercelProjectURL)
+		fmt.Fprintf(&linkSection, " - <%s/logs|Logs>\n", c.vercelProjectURL)
 	}
 
 	summaryText := sb.String()
@@ -96,82 +90,63 @@ func (c *Client) Send(ctx context.Context, text string, end time.Time, report []
 		_, _ = fmt.Fprint(&aiTitle, "🤖 *AI分析*")
 	}
 
-	body, err := json.Marshal(blockPayload{
-		Blocks: []Block{
-			{
-				Type: "header",
-				Text: &TextObject{
+	blocks := []Block{
+		{
+			Type: "header",
+			Text: &TextObject{
+				Type:  "plain_text",
+				Text:  headingTitle,
+				Emoji: true,
+			},
+		},
+		{
+			Type: "context",
+			Elements: []TextObject{
+				{
 					Type:  "plain_text",
-					Text:  headingTitle,
+					Text:  "Powered by P.V.V.C.",
 					Emoji: true,
 				},
 			},
-			{
-				Type: "context",
-				Elements: []TextObject{
-					{
-						Type:  "plain_text",
-						Text:  "Powered by P.V.V.C.",
-						Emoji: true,
-					},
-				},
-			},
-			{
-				Type: "divider",
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: summaryText,
-				},
-			},
-			{
-				Type: "divider",
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: aiTitle.String(),
-				},
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: truncate(text, slackTextMaxLength),
-				},
-			},
-			{
-				Type: "divider",
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: fmt.Sprintf("*:vercel: コスト内訳（%s）*", end.AddDate(0, 0, -1).Format("01/02")),
-				},
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: truncate(costDetailText, slackTextMaxLength),
-				},
-			},
-			{
-				Type: "divider",
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: truncate(linkSectionText, slackTextMaxLength),
-				},
+		},
+		{Type: "divider"},
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: summaryText},
+		},
+		{Type: "divider"},
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: aiTitle.String()},
+		},
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: truncate(text, slackTextMaxLength)},
+		},
+		{Type: "divider"},
+		{
+			Type: "section",
+			Text: &TextObject{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*:vercel: コスト内訳（%s）*", end.AddDate(0, 0, -1).Format("01/02")),
 			},
 		},
-	})
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: truncate(costDetailText, slackTextMaxLength)},
+		},
+	}
+	if linkSectionText != "" {
+		blocks = append(blocks,
+			Block{Type: "divider"},
+			Block{
+				Type: "section",
+				Text: &TextObject{Type: "mrkdwn", Text: truncate(linkSectionText, slackTextMaxLength)},
+			},
+		)
+	}
+
+	body, err := json.Marshal(blockPayload{Blocks: blocks})
 	if err != nil {
 		return fmt.Errorf("slack: failed to marshal payload: %w", err)
 	}
