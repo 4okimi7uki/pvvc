@@ -63,7 +63,7 @@ func summary(start, end time.Time, reports []DailyReport, llm string, allPv, all
 // for slack
 var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
 
-func LatestDaySummary(end time.Time, reports []DailyReport) []Row {
+func LatestDaySummary(reports []DailyReport) []Row {
 	otherReports := reports[:len(reports)-1]
 	latest := reports[len(reports)-1]
 
