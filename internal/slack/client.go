@@ -57,14 +57,15 @@ func (c *Client) Send(ctx context.Context, text string, end time.Time, report []
 	var sb strings.Builder
 	var costDetail strings.Builder
 	sb.WriteString("*Summary*\n")
-
+	// この書き方の方が綺麗に並ぶ気がする
 	for _, row := range summary {
 		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
 	}
-	for _, row := range costByService {
-		fmt.Fprintf(&costDetail, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
 
-	}
+	fmt.Fprint(&costDetail, "```\n")
+	rep.WriteTable(&costDetail, rep.RowsToCells(costByService))
+	fmt.Fprint(&costDetail, "```")
+
 	summaryText := sb.String()
 	costDetailText := costDetail.String()
 	headingTitle := fmt.Sprintf("📊 %s Daily Report", c.serviceName)
