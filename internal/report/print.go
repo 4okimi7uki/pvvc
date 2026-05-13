@@ -2,6 +2,8 @@ package report
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -10,7 +12,7 @@ import (
 
 const barWidth = 100
 
-func printTable(rows [][]string) {
+func WriteTable(w io.Writer, rows [][]string) {
 	colWidths := make([]int, len(rows[0]))
 
 	for _, row := range rows {
@@ -22,13 +24,21 @@ func printTable(rows [][]string) {
 	}
 
 	for _, row := range rows {
-		fmt.Print(" ")
+		fmt.Fprint(w, " ")
 		for i, cell := range row {
-			fmt.Printf("%-*s  ", colWidths[i], cell)
+			fmt.Fprintf(w, "%-*s  ", colWidths[i], cell)
 		}
-		fmt.Println()
+		fmt.Fprintln(w)
 	}
-	fmt.Println()
+	fmt.Fprintln(w)
+}
+
+func RowsToCells(rows []Row) [][]string {
+	cells := make([][]string, len(rows))
+	for i, r := range rows {
+		cells[i] = []string{r.Label, r.Value}
+	}
+	return cells
 }
 
 func PrintSection(label string) {
@@ -45,19 +55,15 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	PrintSection("Summary")
 	fmt.Println()
-	for _, s := range summaryRows {
-		fmt.Printf(" %-10s %s\n", s.Label, s.Value)
-	}
+	WriteTable(os.Stdout, RowsToCells(summaryRows))
 
 	PrintSection("Metrics")
 	fmt.Println()
-	printTable(metricsRows)
+	WriteTable(os.Stdout, metricsRows)
 
 	PrintSection("Service Costs on Latest Date")
 	fmt.Println()
-	for _, s := range costByService {
-		fmt.Printf(" %-10s %s\n", s.Label, s.Value)
-	}
+	WriteTable(os.Stdout, RowsToCells(costByService))
 
 	if aiResponse != "" {
 		PrintSection("AI Analytics")
