@@ -73,8 +73,8 @@ func (c *Client) Send(ctx context.Context, text string, end time.Time, report []
 
 	if c.vercelProjectURL != "" {
 		fmt.Fprint(&linkSection, "🔗 *Links*\n")
-		fmt.Fprintf(&linkSection, " - <%s/usage|Usage>\n", c.vercelProjectURL)
-		fmt.Fprintf(&linkSection, " - <%s/logs|Logs>\n", c.vercelProjectURL)
+		fmt.Fprintf(&linkSection, " - <%s/usage|Vercel Usage>\n", c.vercelProjectURL)
+		fmt.Fprintf(&linkSection, " - <%s/logs|Vercel Logs>\n", c.vercelProjectURL)
 	}
 
 	summaryText := sb.String()
