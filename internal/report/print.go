@@ -24,11 +24,11 @@ func WriteTable(w io.Writer, rows [][]string) {
 	}
 
 	for _, row := range rows {
-		fmt.Fprint(w, " ")
+		_, _ = fmt.Fprint(w, " ")
 		for i, cell := range row {
-			fmt.Fprintf(w, "%-*s  ", colWidths[i], cell)
+			_, _ = fmt.Fprintf(w, "%-*s  ", colWidths[i], cell)
 		}
-		fmt.Fprintln(w)
+		_, _ = fmt.Fprintln(w)
 	}
 }
 
