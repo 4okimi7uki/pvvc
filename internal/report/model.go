@@ -15,3 +15,8 @@ type DailyReport struct {
 	Rate           decimal.Decimal
 	CostByServices map[string][]vercel.ServiceCost
 }
+
+type Row struct {
+	Label string
+	Value string
+}

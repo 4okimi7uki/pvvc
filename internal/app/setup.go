@@ -53,6 +53,11 @@ func RunSetup() error {
 					Description("Settings → General → Project ID\nComma-separated for multiple projects: prj_aaa,prj_bbb").
 					EchoMode(huh.EchoModeNormal).
 					Value(&configs.Vercel.ProjectIds),
+				huh.NewInput().
+					Title("Project URL").
+					Description("Optional. Adds Usage & Logs links to Slack notifications.\ne.g. https://vercel.com/your-team/your-project").
+					EchoMode(huh.EchoModeNormal).
+					Value(&configs.Vercel.ProjectURL),
 			),
 			huh.NewGroup(
 				huh.NewNote().
