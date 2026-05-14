@@ -5,6 +5,7 @@ type VercelConfig struct {
 	TeamId     string `toml:"team_id"`
 	ProjectId  string `toml:"project_id"`
 	ProjectIds string `toml:"project_ids"`
+	ProjectURL string `toml:"project_url"`
 }
 
 type Ga4Config struct {

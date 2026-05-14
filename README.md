@@ -31,7 +31,7 @@ Gemini / Claude による分析コメント生成、Slack通知まで自動化�
 - 日別メトリクスを **CLIテーブル** で見やすく表示
 - **Cost per PV** を算出し、コスト効率を可視化
 - **Gemini / Claude** によるトレンド分析コメントを生成（`--llm` で切り替え可能）
-- Slack への通知に対応
+- Slack への通知に対応（サマリー・コスト内訳・AI分析・Vercel リンク）
 - `pvvc init` による **インタラクティブな初期設定**
 - `.env` または `~/.config/pvvc/config.toml` で設定可能
 
@@ -101,6 +101,7 @@ VERCEL_TOKEN=<Vercel API Token>
 TEAM_ID=<Vercel Team ID>
 PROJECT_ID=<Vercel Project ID>        # 単一プロジェクトの場合
 PROJECT_IDS=<id1,id2,id3>             # 複数プロジェクトを集計する場合（カンマ区切り）
+VERCEL_PROJECT_URL=<https://vercel.com/your-team/your-project>   # 任意: Slack 通知に Usage・Logs へのリンクを追加
 
 # Google Analytics 4
 PROPERTY_ID=<GA4 Property ID>
@@ -152,6 +153,13 @@ pvvc analyze --notify
 pvvc analyze --llm claude --notify
 ```
 
+Slack 通知には以下が含まれます:
+
+- サマリー（PV・コスト・為替レート等）
+- AI 分析コメント（Gemini / Claude アイコン付き）
+- サービス別コスト内訳（前日分）
+- `VERCEL_PROJECT_URL` を設定した場合は Usage・Logs へのリンク
+
 ### Suppress terminal output (quiet mode)
 
 ```bash
@@ -171,12 +179,12 @@ pvvc analyze --notify --quiet
 
 ## Flags
 
-| Flag       | Short | Default | Description                           |
-| ---------- | ----- | ------- | ------------------------------------- |
-| `--from`   | -     | 7日前   | 対象期間の開始日 (e.g. `2006-01-02`)  |
-| `--to`     | -     | 今日    | 対象期間の終了日 (e.g. `2006-01-03`)  |
-| `--quiet`  | `-q`  | `false` | ターミナルへの結果出力を抑制          |
-| `--notify` | -     | `false` | 分析結果をSlackに通知 (`analyze`のみ) |
+| Flag       | Short | Default  | Description                                       |
+| ---------- | ----- | -------- | ------------------------------------------------- |
+| `--from`   | -     | 7日前    | 対象期間の開始日 (e.g. `2006-01-02`)              |
+| `--to`     | -     | 今日     | 対象期間の終了日 (e.g. `2006-01-03`)              |
+| `--quiet`  | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
+| `--notify` | -     | `false`  | 分析結果をSlackに通知 (`analyze`のみ)             |
 | `--llm`    | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
 
 ---
