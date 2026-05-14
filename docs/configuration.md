@@ -42,9 +42,10 @@
 
 ### Slack
 
-| 環境変数            | config.toml キー    | 必須 | 説明                                            |
-| ------------------- | ------------------- | :--: | ----------------------------------------------- |
-| `SLACK_WEBHOOK_URL` | `slack.webhook_url` |  -   | Incoming Webhook URL。`--notify` 使用時のみ必要 |
+| 環境変数             | config.toml キー    | 必須 | 説明                                            |
+| -------------------- | ------------------- | :--: | ----------------------------------------------- |
+| `SLACK_WEBHOOK_URL`  | `slack.webhook_url` |  -   | Incoming Webhook URL。`--notify` 使用時のみ必要 |
+| `VERCEL_PROJECT_URL` | `vercel.project_url`|  -   | Vercel プロジェクトの URL。設定すると Slack 通知にUsage・Logsへのリンクが追加される |
 
 ### Service
 
@@ -62,6 +63,7 @@ token = "your_vercel_token"
 team_id = "team_xxxxxxxx"
 project_id = "prj_xxxxxxxx"          # 単一プロジェクトの場合
 project_ids = "prj_aaa,prj_bbb"   # 複数プロジェクトをまとめて集計する場合
+project_url = "https://vercel.com/your-team/your-project"  # optional: Slack リンク用
 
 [ga4]
 property_id = "123456789"
@@ -97,6 +99,7 @@ CLAUDE_API_KEY=sk-ant-...  # Claude を使う場合
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 
 TARGET_WEBSITE_NAME=Your Site Name
+VERCEL_PROJECT_URL=https://vercel.com/your-team/your-project  # optional
 ```
 
 ---

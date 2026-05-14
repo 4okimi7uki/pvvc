@@ -8,28 +8,31 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/httpclient"
-	"github.com/4okimi7uki/pvvc/internal/report"
+	rep "github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
 )
 
 const slackTextMaxLength = 3000
 
 type Client struct {
-	webhookURL  string
-	httpClient  *http.Client
-	serviceName string
+	webhookURL       string
+	httpClient       *http.Client
+	serviceName      string
+	vercelProjectURL string
 }
 
-func New(webhookURL string, serviceName string) (*Client, error) {
+func New(webhookURL, serviceName, vercelProjectURL string) (*Client, error) {
 	if webhookURL == "" {
 		return nil, fmt.Errorf("slack: webhook url is required")
 	}
 	return &Client{
-		webhookURL:  webhookURL,
-		httpClient:  httpclient.New(),
-		serviceName: serviceName,
+		webhookURL:       webhookURL,
+		httpClient:       httpclient.New(),
+		serviceName:      serviceName,
+		vercelProjectURL: vercelProjectURL,
 	}, nil
 }
 
@@ -49,58 +52,101 @@ type blockPayload struct {
 	Blocks []Block `json:"blocks"`
 }
 
-func (c *Client) Send(ctx context.Context, text string, summary []report.Row) error {
-	var sb strings.Builder
-	sb.WriteString("*Summary*\n")
+func (c *Client) Send(ctx context.Context, text string, end time.Time, report []rep.DailyReport, llm string) error {
+	summary := rep.LatestDaySummary(report)
+	costByService := rep.LatestServiceCosts(end, report)
 
+	var sb strings.Builder
+	var costDetail strings.Builder
+	var linkSection strings.Builder
+	var aiTitle strings.Builder
+
+	sb.WriteString("*Summary*\n")
+	// この書き方の方が綺麗に並ぶ気がする
 	for _, row := range summary {
 		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
 	}
-	summaryText := sb.String()
-	headingTitle := fmt.Sprintf("📊 %s Daily Report", c.serviceName)
 
-	body, err := json.Marshal(blockPayload{
-		Blocks: []Block{
-			{
-				Type: "header",
-				Text: &TextObject{
+	fmt.Fprint(&costDetail, "```\n")
+	rep.WriteTable(&costDetail, rep.RowsToCells(costByService))
+	fmt.Fprint(&costDetail, "```")
+
+	if c.vercelProjectURL != "" {
+		fmt.Fprint(&linkSection, "🔗 *Links*\n")
+		fmt.Fprintf(&linkSection, " - <%s/usage|Usage>\n", c.vercelProjectURL)
+		fmt.Fprintf(&linkSection, " - <%s/logs|Logs>\n", c.vercelProjectURL)
+	}
+
+	summaryText := sb.String()
+	costDetailText := costDetail.String()
+	linkSectionText := linkSection.String()
+	headingTitle := fmt.Sprintf("📊 %s Daily Report", c.serviceName)
+	switch llm {
+	case "", "gemini":
+		_, _ = fmt.Fprint(&aiTitle, ":google-gemini: *AI分析*")
+	case "claude":
+		_, _ = fmt.Fprint(&aiTitle, ":claude_ai_symbol: *AI分析*")
+	default:
+		_, _ = fmt.Fprint(&aiTitle, "🤖 *AI分析*")
+	}
+
+	blocks := []Block{
+		{
+			Type: "header",
+			Text: &TextObject{
+				Type:  "plain_text",
+				Text:  headingTitle,
+				Emoji: true,
+			},
+		},
+		{
+			Type: "context",
+			Elements: []TextObject{
+				{
 					Type:  "plain_text",
-					Text:  headingTitle,
+					Text:  "Powered by P.V.V.C.",
 					Emoji: true,
 				},
 			},
-			{
-				Type: "context",
-				Elements: []TextObject{
-					{
-						Type:  "plain_text",
-						Text:  "Powered by P.V.V.C.",
-						Emoji: true,
-					},
-				},
-			},
-			{
-				Type: "divider",
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: summaryText,
-				},
-			},
-			{
-				Type: "divider",
-			},
-			{
-				Type: "section",
-				Text: &TextObject{
-					Type: "mrkdwn",
-					Text: truncate(text, slackTextMaxLength),
-				},
+		},
+		{Type: "divider"},
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: summaryText},
+		},
+		{Type: "divider"},
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: aiTitle.String()},
+		},
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: truncate(text, slackTextMaxLength)},
+		},
+		{Type: "divider"},
+		{
+			Type: "section",
+			Text: &TextObject{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*:vercel: コスト内訳（%s）*", end.AddDate(0, 0, -1).Format("01/02")),
 			},
 		},
-	})
+		{
+			Type: "section",
+			Text: &TextObject{Type: "mrkdwn", Text: truncate(costDetailText, slackTextMaxLength)},
+		},
+	}
+	if linkSectionText != "" {
+		blocks = append(blocks,
+			Block{Type: "divider"},
+			Block{
+				Type: "section",
+				Text: &TextObject{Type: "mrkdwn", Text: truncate(linkSectionText, slackTextMaxLength)},
+			},
+		)
+	}
+
+	body, err := json.Marshal(blockPayload{Blocks: blocks})
 	if err != nil {
 		return fmt.Errorf("slack: failed to marshal payload: %w", err)
 	}
@@ -125,7 +171,7 @@ func (c *Client) Send(ctx context.Context, text string, summary []report.Row) er
 		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("slack: unexpected status %d: %s", resp.StatusCode, string(body))
 	}
-	report.PrintSection("Notification")
+	rep.PrintSection("Notification")
 	fmt.Println()
 	fmt.Println(" Sent the analysis result to Slack 🔔")
 	fmt.Println()
