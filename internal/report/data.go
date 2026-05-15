@@ -16,9 +16,16 @@ func metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]strin
 		metricsRows [][]string
 	)
 	metricsRows = append(metricsRows, []string{"Date", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV(JPY)", "USD/JPY"})
+	dash := func(zero bool, s string) string {
+		if zero {
+			return "-"
+		}
+		return s
+	}
 	for _, r := range reports {
+		noCost := r.TotalCost.IsZero()
 		var _costPerPVJPY decimal.Decimal
-		if !r.PV.IsZero() {
+		if !noCost && !r.PV.IsZero() {
 			_costPerPVJPY = r.TotalCostJPY.Div(r.PV)
 		}
 		allPv = allPv.Add(r.PV)
@@ -27,9 +34,9 @@ func metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]strin
 		metricsRows = append(metricsRows, []string{
 			r.Date.Format("01/02 (Mon)"),
 			decimalfmt.DecimalCommaf(r.PV, 0),
-			decimalfmt.DecimalCommaf(r.TotalCost, 4),
-			decimalfmt.DecimalCommaf(r.TotalCostJPY, 2),
-			decimalfmt.DecimalCommaf(_costPerPVJPY, 4),
+			dash(noCost, decimalfmt.DecimalCommaf(r.TotalCost, 4)),
+			dash(noCost, decimalfmt.DecimalCommaf(r.TotalCostJPY, 2)),
+			dash(noCost || r.PV.IsZero(), decimalfmt.DecimalCommaf(_costPerPVJPY, 4)),
 			decimalfmt.DecimalCommaf(r.Rate, 2),
 		})
 
@@ -39,10 +46,10 @@ func metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]strin
 
 func summary(start, end time.Time, reports []DailyReport, llm string, allPv, allCost decimal.Decimal) []Row {
 	var period strings.Builder
-	if start.Equal(end.AddDate(0, 0, -1)) {
+	if start.Equal(end) {
 		fmt.Fprintf(&period, "%s", start.Format("2006/01/02"))
 	} else {
-		fmt.Fprintf(&period, "%s → %s", start.Format("2006/01/02"), end.AddDate(0, 0, -1).Format("2006/01/02"))
+		fmt.Fprintf(&period, "%s → %s", start.Format("2006/01/02"), end.Format("2006/01/02"))
 	}
 	reportsLen := decimal.NewFromInt(int64(len(reports)))
 	var summaryRows []Row
@@ -98,7 +105,7 @@ func LatestServiceCosts(end time.Time, reports []DailyReport) []Row {
 	var (
 		totalCostByService decimal.Decimal
 		costByService      []Row
-		latestDate         = end.AddDate(0, 0, -1).Format("20060102")
+		latestDate         = end.Format("20060102")
 	)
 	costByService = append(costByService, Row{"SERVICE NAME", "BILLED COST"})
 	for _, cs := range reports[0].CostByServices[latestDate] {
