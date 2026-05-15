@@ -8,8 +8,9 @@ import (
 )
 
 type ServiceCost struct {
-	ServiceName string
-	BilledCost  decimal.Decimal
+	ServiceName   string
+	BilledCost    decimal.Decimal
+	EffectiveCost decimal.Decimal // EffectiveCostの集計を
 }
 
 type Report struct {

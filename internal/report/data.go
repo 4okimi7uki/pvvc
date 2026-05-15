@@ -102,9 +102,9 @@ func LatestServiceCosts(end time.Time, reports []DailyReport) []Row {
 	)
 	costByService = append(costByService, Row{"SERVICE NAME", "BILLED COST"})
 	for _, cs := range reports[0].CostByServices[latestDate] {
-		totalCostByService = totalCostByService.Add(cs.BilledCost)
+		totalCostByService = totalCostByService.Add(cs.EffectiveCost)
 		costByService = append(costByService,
-			Row{cs.ServiceName, "$" + decimalfmt.DecimalCommaf(cs.BilledCost, 4)})
+			Row{cs.ServiceName, "$" + decimalfmt.DecimalCommaf(cs.EffectiveCost, 4)})
 	}
 	costByService = append(costByService,
 		Row{"---", "---"},
