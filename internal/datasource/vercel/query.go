@@ -12,7 +12,7 @@ import (
 func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
 	params := url.Values{}
 	params.Set("from", start.Format("2006-01-02"))
-	params.Set("to", end.Format("2006-01-02"))
+	params.Set("to", end.AddDate(0, 0, 1).Format("2006-01-02")) // Vercel treats `to` as exclusive
 	if c.teamID != "" {
 		params.Set("teamId", c.teamID)
 	}

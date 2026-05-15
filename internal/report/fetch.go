@@ -93,7 +93,7 @@ func FetchDailyReport(
 	}
 
 	var reports []DailyReport
-	for d := start; !d.After(end.AddDate(0, 0, -1)); d = d.AddDate(0, 0, 1) {
+	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 		key := d.Format("20060102")
 		cost := totalCosts[key]
 		rate := rates[key]
