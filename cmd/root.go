@@ -60,12 +60,15 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&raw, "raw", false, "print raw API responses from GA4 and Vercel")
 	_ = rootCmd.PersistentFlags().MarkHidden("raw")
 
-	// Default: 1 week
-	rootCmd.PersistentFlags().TimeVar(&from, "from", time.Now().AddDate(0, 0, -7), []string{
+	// Default: 1 week. Use local calendar date stored as UTC midnight to match
+	// bare-date parsing (time.Parse("2006-01-02", ...) always returns UTC midnight).
+	now := time.Now()
+	yesterday := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, time.UTC)
+	rootCmd.PersistentFlags().TimeVar(&from, "from", yesterday.AddDate(0, 0, -6), []string{
 		"2006-01-02",
 		time.RFC3339,
 	}, "start date of the report period (e.g. 2006-01-02)")
-	rootCmd.PersistentFlags().TimeVar(&to, "to", time.Now(), []string{
+	rootCmd.PersistentFlags().TimeVar(&to, "to", yesterday, []string{
 		"2006-01-02",
 		time.RFC3339,
 	}, "end date of the report period (e.g. 2006-01-03)")

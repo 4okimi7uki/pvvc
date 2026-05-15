@@ -12,8 +12,8 @@ func (r *Report) TotalCostByDay(projectIds []string) map[string]decimal.Decimal 
 	for _, charge := range r.Charges {
 		if slices.Contains(projectIds, charge.Tags.ProjectID) {
 			key := charge.ChargePeriodStart.Format("20060102")
-			billedCost, _ := decimal.NewFromString(charge.BilledCost.String())
-			totals[key] = totals[key].Add(billedCost)
+			EffectiveCost, _ := decimal.NewFromString(string(charge.EffectiveCost.String()))
+			totals[key] = totals[key].Add(EffectiveCost)
 		}
 	}
 	return totals
@@ -24,8 +24,8 @@ func (r *Report) TotalCostByService(projectIds []string) map[string]decimal.Deci
 	for _, charge := range r.Charges {
 		if slices.Contains(projectIds, charge.Tags.ProjectID) {
 			serviceName := charge.ServiceName
-			billedCost, _ := decimal.NewFromString(charge.BilledCost.String())
-			totals[serviceName] = totals[serviceName].Add(billedCost)
+			EffectiveCost, _ := decimal.NewFromString(string(charge.EffectiveCost.String()))
+			totals[serviceName] = totals[serviceName].Add(EffectiveCost)
 		}
 	}
 	return totals
@@ -47,24 +47,24 @@ func (r *Report) DailyCostByService(projectIds []string) map[string][]ServiceCos
 			intermediate[date] = make(ServiceCostMap)
 		}
 		serviceName := charge.ServiceName
-		billedCost, _ := decimal.NewFromString(charge.BilledCost.String())
-		intermediate[date][serviceName] = intermediate[date][serviceName].Add(billedCost)
+		EffectiveCost, _ := decimal.NewFromString(charge.EffectiveCost.String())
+		intermediate[date][serviceName] = intermediate[date][serviceName].Add(EffectiveCost)
 	}
 
 	result := make(map[string][]ServiceCost)
 	for date, services := range intermediate {
 		for name, cost := range services {
 			result[date] = append(result[date], ServiceCost{
-				ServiceName: name,
-				BilledCost:  cost,
+				ServiceName:   name,
+				EffectiveCost: cost,
 			})
 		}
 	}
 
-	// sort by billedCost
+	// sort by EffectiveCost
 	for date := range result {
 		sort.Slice(result[date], func(i, j int) bool {
-			return result[date][i].BilledCost.GreaterThan(result[date][j].BilledCost)
+			return result[date][i].EffectiveCost.GreaterThan(result[date][j].EffectiveCost)
 		})
 	}
 	return result
