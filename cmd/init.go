@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/spf13/cobra"
+
+	"github.com/4okimi7uki/pvvc/internal/app"
 )
 
 var initCmd = &cobra.Command{

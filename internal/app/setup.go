@@ -6,10 +6,11 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/4okimi7uki/pvvc/internal/config"
-	"github.com/4okimi7uki/pvvc/internal/ui"
 	"github.com/charmbracelet/huh"
 	"github.com/pelletier/go-toml/v2"
+
+	"github.com/4okimi7uki/pvvc/internal/config"
+	"github.com/4okimi7uki/pvvc/internal/ui"
 )
 
 func RunSetup() error {
@@ -47,12 +48,12 @@ func RunSetup() error {
 					Title("Team ID").
 					Description("Settings → General → Team ID  (leave blank for personal accounts)").
 					EchoMode(huh.EchoModeNormal).
-					Value(&configs.Vercel.TeamId),
+					Value(&configs.Vercel.TeamID),
 				huh.NewInput().
 					Title("Project IDs").
 					Description("Settings → General → Project ID\nComma-separated for multiple projects: prj_aaa,prj_bbb").
 					EchoMode(huh.EchoModeNormal).
-					Value(&configs.Vercel.ProjectIds),
+					Value(&configs.Vercel.ProjectIDs),
 				huh.NewInput().
 					Title("Project URL").
 					Description("Optional. Adds Usage & Logs links to Slack notifications.\ne.g. https://vercel.com/your-team/your-project").
@@ -68,7 +69,7 @@ func RunSetup() error {
 					Description("Admin → Property Settings → Property ID (numeric)").
 					Validate(isInt).
 					EchoMode(huh.EchoModeNormal).
-					Value(&configs.Ga4.PropertyId),
+					Value(&configs.Ga4.PropertyID),
 				huh.NewInput().
 					Title("Credential").
 					Description("Service account JSON compressed to one line:\ncat key.json | tr -d '\\n'").
@@ -93,7 +94,7 @@ func RunSetup() error {
 					Title("Slack Webhook URL").
 					Description("Required for --notify flag.  → api.slack.com/messaging/webhooks").
 					EchoMode(huh.EchoModePassword).
-					Value(&configs.Slack.WebhookUrl),
+					Value(&configs.Slack.WebhookURL),
 				huh.NewInput().
 					Title("Service Name").
 					Description("Display name shown in reports and Slack messages.").
@@ -119,6 +120,9 @@ func RunSetup() error {
 }
 
 func createConfigFile(dir, filePath string, cfg config.Config) (string, error) {
+	// templates/ holds prompt template files fetched from a public GitHub repo.
+	// No secrets, no PII — safe with default permissions.
+	//nolint:gosec // G301: public template cache, not sensitive
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("failed to create dir: %w", err)
 	}
@@ -127,6 +131,7 @@ func createConfigFile(dir, filePath string, cfg config.Config) (string, error) {
 		return "", fmt.Errorf("failed to Marshal: %w", err)
 	}
 
+	//nolint:gosec // G306: public template content, not sensitive
 	if err := os.WriteFile(filePath, data, 0o644); err != nil {
 		return "", fmt.Errorf("failed to write %s: %w", filePath, err)
 	}
