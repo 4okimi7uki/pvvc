@@ -8,14 +8,15 @@ import (
 	"time"
 
 	"cloud.google.com/go/auth/credentials"
+	"github.com/spf13/viper"
+	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
+
 	"github.com/4okimi7uki/pvvc/internal/ai"
 	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/ui"
-	"github.com/spf13/viper"
-	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
 
 func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool) ([]report.DailyReport, error) {

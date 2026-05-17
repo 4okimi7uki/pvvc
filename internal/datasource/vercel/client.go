@@ -1,6 +1,7 @@
 package vercel
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -28,8 +29,8 @@ func New(token, teamID string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) newRequest(method, path string) (*http.Request, error) {
-	req, err := http.NewRequest(method, baseURL+path, nil)
+func (c *Client) newRequest(ctx context.Context, method, path string) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, baseURL+path, nil)
 	if err != nil {
 		return nil, err
 	}

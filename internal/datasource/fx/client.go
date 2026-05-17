@@ -1,26 +1,26 @@
 package fx
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/shopspring/decimal"
+
+	"github.com/4okimi7uki/pvvc/internal/httpclient"
 )
 
-func FetchUSDToJPY(start time.Time, end time.Time) (map[string]decimal.Decimal, error) {
+func FetchUSDToJPY(ctx context.Context, start time.Time, end time.Time) (map[string]decimal.Decimal, error) {
 	url := fmt.Sprintf("https://api.frankfurter.dev/v2/rates?base=USD&quotes=JPY&from=%s&to=%s", start.Format("2006-01-02"), end.Format("2006-01-02"))
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 
 	if err != nil {
-		return nil, fmt.Errorf("fx: network response is error: %w", err)
+		return nil, fmt.Errorf("fx: failed to create request: %w", err)
 	}
 
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
+	client := httpclient.New()
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

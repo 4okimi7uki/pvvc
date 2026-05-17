@@ -3,9 +3,10 @@ package cmd
 import (
 	"context"
 
+	"github.com/spf13/cobra"
+
 	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/report"
-	"github.com/spf13/cobra"
 )
 
 var reportCmd = &cobra.Command{

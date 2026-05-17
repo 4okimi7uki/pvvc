@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/option"
+
 	"github.com/4okimi7uki/pvvc/internal/ai"
 	"github.com/4okimi7uki/pvvc/internal/httpclient"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
-	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
 type Client struct {
@@ -30,7 +31,7 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, upda
 	)
 
 	data := ai.BuildPromptData(reports, c.serviceName)
-	prompt, err := ai.BuildPrompt(c.promptPath, data)
+	prompt, err := ai.BuildPrompt(ctx, c.promptPath, data)
 	if err != nil {
 		return "", fmt.Errorf("build prompt: %w", err)
 	}
