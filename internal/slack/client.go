@@ -128,7 +128,7 @@ func (c *Client) Send(ctx context.Context, text string, end time.Time, report []
 			Type: "section",
 			Text: &TextObject{
 				Type: "mrkdwn",
-				Text: fmt.Sprintf("*:vercel: コスト内訳（%s）*", end.AddDate(0, 0, -1).Format("01/02")),
+				Text: fmt.Sprintf("*:vercel: コスト内訳（%s）*", end.Format("01/02")),
 			},
 		},
 		{
