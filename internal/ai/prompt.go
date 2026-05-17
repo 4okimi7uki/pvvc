@@ -55,7 +55,7 @@ var weekdaysJa = [...]string{"日", "月", "火", "水", "木", "金", "土"}
 func BuildPromptData(reports []report.DailyReport, serviceName string) PromptData {
 	rows := make([]ReportRow, len(reports))
 	var serviceTableRows []ReportRow
-
+	serviceTableHeader := fmt.Sprintf(serviceRowFmt, "SERVICE NAME", "BILLED COST")
 	for i, r := range reports {
 		date := r.Date.Format("01/02") + fmt.Sprintf("(%s)", weekdaysJa[r.Date.Weekday()])
 		pv := decimalfmt.DecimalCommaf(r.PV, 0)
@@ -69,24 +69,24 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 		}
 
 		dateKey := r.Date.Format("20060102")
-		serviceTableRows = append(serviceTableRows, ReportRow{Line: date})
+		serviceTableRows = append(serviceTableRows, ReportRow{Line: "---\n" + date + "\n"})
+		serviceTableRows = append(serviceTableRows, ReportRow{Line: serviceTableHeader})
 		for _, l := range r.CostByServices[dateKey] {
 			serviceTableRows = append(serviceTableRows,
-				ReportRow{Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+decimalfmt.DecimalCommaf(l.BilledCost, 4))})
+				ReportRow{Line: fmt.Sprintf(serviceRowFmt, l.ServiceName, "$"+decimalfmt.DecimalCommaf(l.EffectiveCost, 4))})
 		}
 		serviceTableRows = append(serviceTableRows, ReportRow{Line: ""})
 	}
 
 	return PromptData{
-		ServiceName:        serviceName,
-		Today:              time.Now().Format("2006年01月02日"),
-		TableHeader:        fmt.Sprintf(rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY"),
-		Rows:               rows,
-		ServiceTableHeader: fmt.Sprintf(serviceRowFmt, "SERVICE NAME", "BILLED COST"),
-		ServiceTableRows:   serviceTableRows,
-		NewsURLs:           newsURLList,
-		IsBeforeCutoff:     time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
-		HasAnomaly:         detectAnomaly(reports),
+		ServiceName:      serviceName,
+		Today:            time.Now().Format("2006年01月02日"),
+		TableHeader:      fmt.Sprintf(rowFmt, "日付", "PV", "Cost(USD)", "Cost(JPY)", "Cost/PV", "USD/JPY"),
+		Rows:             rows,
+		ServiceTableRows: serviceTableRows,
+		NewsURLs:         newsURLList,
+		IsBeforeCutoff:   time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
+		HasAnomaly:       detectAnomaly(reports),
 	}
 }
 
