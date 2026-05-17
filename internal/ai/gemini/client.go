@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"strings"
 
+	"google.golang.org/api/googleapi"
+	"google.golang.org/genai"
+
 	"github.com/4okimi7uki/pvvc/internal/ai"
 	"github.com/4okimi7uki/pvvc/internal/httpclient"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
-	"google.golang.org/api/googleapi"
-	"google.golang.org/genai"
 )
 
 type Client struct {
@@ -34,7 +35,7 @@ func (c *Client) Analyze(ctx context.Context, reports []report.DailyReport, upda
 	}
 
 	data := ai.BuildPromptData(reports, c.serviceName)
-	prompt, err := ai.BuildPrompt(c.promptPath, data)
+	prompt, err := ai.BuildPrompt(ctx, c.promptPath, data)
 	if err != nil {
 		return "", fmt.Errorf("build prompt: %w", err)
 	}

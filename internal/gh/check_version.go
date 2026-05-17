@@ -1,6 +1,7 @@
 package gh
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -49,16 +50,15 @@ func ResolvedVersion() string {
 	return "v0.0.0-dev"
 }
 
-func fetchLatestVersion(owner, repo string) (string, error) {
+func fetchLatestVersion(ctx context.Context, owner, repo string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return "", err
 	}
 
 	req.Header.Set("User-Agent", "pvvc")
-
 	client := &http.Client{
 		Timeout: 3 * time.Second,
 	}
@@ -83,8 +83,8 @@ func fetchLatestVersion(owner, repo string) (string, error) {
 	return release.TagName, nil
 }
 
-func CheckLatestVersion(owner, repo, version string) (string, error) {
-	latest, err := fetchLatestVersion(owner, repo)
+func CheckLatestVersion(ctx context.Context, owner, repo, version string) (string, error) {
+	latest, err := fetchLatestVersion(ctx, owner, repo)
 	if err == nil && latest != "" {
 		latestTrimmed := strings.TrimPrefix(latest, "v")
 		currentTrimmed := strings.TrimPrefix(version, "v")

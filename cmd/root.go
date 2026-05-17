@@ -6,10 +6,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/spf13/cobra"
+
 	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/gh"
 	"github.com/4okimi7uki/pvvc/internal/ui"
-	"github.com/spf13/cobra"
 )
 
 var cfg = config.New()
@@ -101,8 +102,9 @@ func runWith(fn func(ctx context.Context) error) error {
 }
 
 func PrintCheckLatestVersion() {
+	ctx := context.Background()
 	resolvedVersion := gh.ResolvedVersion()
-	if msg, err := gh.CheckLatestVersion("4okimi7uki", "pvvc", resolvedVersion); err == nil && msg != "" {
+	if msg, err := gh.CheckLatestVersion(ctx, "4okimi7uki", "pvvc", resolvedVersion); err == nil && msg != "" {
 		_, _ = fmt.Fprintf(os.Stdout, "%s\n", ui.LimeYellow(msg))
 		_, _ = fmt.Fprintf(os.Stdout, "%s\n\n", "https://github.com/4okimi7uki/pvvc/releases")
 	}

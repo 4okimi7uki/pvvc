@@ -5,8 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/4okimi7uki/pvvc/internal/decimalfmt"
 	"github.com/shopspring/decimal"
+
+	"github.com/4okimi7uki/pvvc/internal/decimalfmt"
 )
 
 func metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]string) {

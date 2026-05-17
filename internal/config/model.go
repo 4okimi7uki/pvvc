@@ -2,14 +2,14 @@ package config
 
 type VercelConfig struct {
 	Token      string `toml:"token"`
-	TeamId     string `toml:"team_id"`
-	ProjectId  string `toml:"project_id"`
-	ProjectIds string `toml:"project_ids"`
+	TeamID     string `toml:"team_id"`
+	ProjectID  string `toml:"project_id"`
+	ProjectIDs string `toml:"project_ids"`
 	ProjectURL string `toml:"project_url"`
 }
 
 type Ga4Config struct {
-	PropertyId string `toml:"property_id"`
+	PropertyID string `toml:"property_id"`
 	Credential string `toml:"credential"`
 }
 
@@ -19,7 +19,7 @@ type AiConfig struct {
 }
 
 type SlackConfig struct {
-	WebhookUrl string `toml:"webhook_url"`
+	WebhookURL string `toml:"webhook_url"`
 }
 
 type ServiceConfig struct {

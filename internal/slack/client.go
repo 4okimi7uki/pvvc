@@ -159,18 +159,22 @@ func (c *Client) Send(ctx context.Context, text string, end time.Time, report []
 		}
 		req.Header.Set("Content-Type", "application/json")
 		resp, e = c.httpClient.Do(req)
-		return e
+		if e != nil {
+			return e
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			return fmt.Errorf("slack: unexpected status %d: %s", resp.StatusCode, string(body))
+		}
+		return nil
 	}); err != nil {
 		return fmt.Errorf("slack: request failed %w", err)
 	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
 
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("slack: unexpected status %d: %s", resp.StatusCode, string(body))
-	}
 	rep.PrintSection("Notification")
 	fmt.Println()
 	fmt.Println(" Sent the analysis result to Slack 🔔")

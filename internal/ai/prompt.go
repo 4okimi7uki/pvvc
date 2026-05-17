@@ -2,6 +2,7 @@ package ai
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"fmt"
 	"io"
@@ -11,16 +12,17 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/shopspring/decimal"
+
 	"github.com/4okimi7uki/pvvc/internal/decimalfmt"
 	"github.com/4okimi7uki/pvvc/internal/report"
-	"github.com/shopspring/decimal"
 )
 
 // vercelBillingCutoffUTCHour はVercelの課金データが確定するUTC時刻です。
 // ref: https://vercel.com/docs/billing
 const vercelBillingCutoffUTCHour = 7
 
-var newsUrlList = []string{
+var newsURLList = []string{
 	"https://www.pgatour.com/news",
 	"https://www.lpga.com/news",
 	"https://www.livgolf.com/news",
@@ -82,7 +84,7 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 		Rows:               rows,
 		ServiceTableHeader: fmt.Sprintf(serviceRowFmt, "SERVICE NAME", "BILLED COST"),
 		ServiceTableRows:   serviceTableRows,
-		NewsURLs:           newsUrlList,
+		NewsURLs:           newsURLList,
 		IsBeforeCutoff:     time.Now().UTC().Hour() < vercelBillingCutoffUTCHour,
 		HasAnomaly:         detectAnomaly(reports),
 	}
@@ -91,21 +93,31 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 //go:embed "templates/analyze.tmpl"
 var defaultPrompt embed.FS
 
-func BuildPrompt(tmplPath string, data PromptData) (string, error) {
+func BuildPrompt(ctx context.Context, tmplPath string, data PromptData) (string, error) {
 	var tmplBytes []byte
+	var resp *http.Response
 	var err error
 
 	switch {
 	case strings.HasPrefix(tmplPath, "http://") || strings.HasPrefix(tmplPath, "https://"):
-		resp, fetchErr := http.Get(tmplPath)
+
+		req, fetchErr := http.NewRequestWithContext(ctx, http.MethodGet, tmplPath, nil)
+
+		//   integrity is protected by GitHub account access controls and PR review.
 		if fetchErr != nil {
 			return "", fmt.Errorf("failed to fetch template: %w", fetchErr)
+		}
+		resp, err = http.DefaultClient.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("fetch template: %w", err)
 		}
 		defer func() {
 			_ = resp.Body.Close()
 		}()
+
 		tmplBytes, err = io.ReadAll(resp.Body)
 	case tmplPath != "":
+		//nolint:gosec // G394
 		tmplBytes, err = os.ReadFile(tmplPath)
 	default:
 		tmplBytes, err = defaultPrompt.ReadFile("templates/analyze.tmpl") // fallback
