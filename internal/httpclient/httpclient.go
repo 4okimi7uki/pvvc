@@ -3,6 +3,7 @@ package httpclient
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/gh"
 )
@@ -24,5 +25,6 @@ func (t *uaTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func New() *http.Client {
 	return &http.Client{
 		Transport: &uaTransport{base: http.DefaultTransport},
+		Timeout:   20 * time.Second,
 	}
 }

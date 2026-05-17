@@ -3,8 +3,9 @@ package report
 import (
 	"time"
 
-	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/shopspring/decimal"
+
+	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 )
 
 type DailyReport struct {

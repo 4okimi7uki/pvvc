@@ -1,0 +1,20 @@
+{
+  "languages": {
+    "Go": {
+      "format_on_save": "on",
+      "formatter": "language_server",
+      "code_actions_on_format": {
+        "source.organizeImports": true,
+      },
+    },
+  },
+  "lsp": {
+    "gopls": {
+      "initialization_options": {
+        "local": "github.com/4okimi7uki/pvvc",
+        "usePlaceholders": true,
+        "staticcheck": false,
+      },
+    },
+  },
+}

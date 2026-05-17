@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/shopspring/decimal"
+	"github.com/spf13/viper"
+	"golang.org/x/sync/errgroup"
+
 	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/fx"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/ui"
-	"github.com/shopspring/decimal"
-	"github.com/spf13/viper"
-	"golang.org/x/sync/errgroup"
 )
 
 func FetchDailyReport(
@@ -47,6 +48,7 @@ func FetchDailyReport(
 	// Vercel cost
 	eg.Go(func() error {
 		cost, err := vercelClient.FetchBillingCharges(
+			ctx,
 			start,
 			end,
 		)
@@ -78,7 +80,7 @@ func FetchDailyReport(
 	// FX
 	eg.Go(func() error {
 		var err error
-		rates, err = fx.FetchUSDToJPY(start, end)
+		rates, err = fx.FetchUSDToJPY(ctx, start, end)
 		if err != nil {
 			addDone(ui.Red("  ✗ ") + "FX")
 			return err

@@ -12,7 +12,7 @@ func (r *Report) TotalCostByDay(projectIds []string) map[string]decimal.Decimal 
 	for _, charge := range r.Charges {
 		if slices.Contains(projectIds, charge.Tags.ProjectID) {
 			key := charge.ChargePeriodStart.Format("20060102")
-			EffectiveCost, _ := decimal.NewFromString(string(charge.EffectiveCost.String()))
+			EffectiveCost, _ := decimal.NewFromString(string(charge.EffectiveCost))
 			totals[key] = totals[key].Add(EffectiveCost)
 		}
 	}
@@ -24,7 +24,7 @@ func (r *Report) TotalCostByService(projectIds []string) map[string]decimal.Deci
 	for _, charge := range r.Charges {
 		if slices.Contains(projectIds, charge.Tags.ProjectID) {
 			serviceName := charge.ServiceName
-			EffectiveCost, _ := decimal.NewFromString(string(charge.EffectiveCost.String()))
+			EffectiveCost, _ := decimal.NewFromString(string(charge.EffectiveCost))
 			totals[serviceName] = totals[serviceName].Add(EffectiveCost)
 		}
 	}

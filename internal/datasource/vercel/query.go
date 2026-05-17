@@ -2,14 +2,16 @@ package vercel
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"time"
 )
 
-func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
+func (c *Client) FetchBillingCharges(ctx context.Context, start, end time.Time) (*Report, error) {
 	params := url.Values{}
 	params.Set("from", start.Format("2006-01-02"))
 	params.Set("to", end.AddDate(0, 0, 1).Format("2006-01-02")) // Vercel treats `to` as exclusive
@@ -17,7 +19,7 @@ func (c *Client) FetchBillingCharges(start, end time.Time) (*Report, error) {
 		params.Set("teamId", c.teamID)
 	}
 
-	req, err := c.newRequest("GET", "/v1/billing/charges?"+params.Encode())
+	req, err := c.newRequest(ctx, http.MethodGet, "/v1/billing/charges?"+params.Encode())
 	if err != nil {
 		return nil, fmt.Errorf("vercel: failed to build request: %w", err)
 	}
