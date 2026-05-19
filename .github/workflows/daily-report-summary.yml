@@ -1,4 +1,4 @@
-name: Daily Report (with analysis)
+name: Daily Report (summary)
 
 on:
   # schedule:
@@ -13,14 +13,6 @@ on:
         options:
           - dev
           - prod
-      llm:
-        description: "LLM for analyzing"
-        required: false
-        default: "gemini"
-        type: choice
-        options:
-          - gemini
-          - claude
 
 jobs:
   report:
@@ -35,8 +27,6 @@ jobs:
       VERCEL_PROJECT_URL: ${{ secrets.VERCEL_PROJECT_URL }}
       PROPERTY_ID: ${{ secrets.PROPERTY_ID }}
       GOOGLE_ANALYTICS_CREDENTIAL: ${{ secrets.GOOGLE_ANALYTICS_CREDENTIAL }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       TARGET_WEBSITE_NAME: ${{ secrets.TARGET_WEBSITE_NAME }}
       WEBHOOK_PROD: ${{ secrets.WEBHOOK_PROD }}
       WEBHOOK_DEV: ${{ secrets.WEBHOOK_DEV }}
@@ -62,20 +52,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fetch prompt
-        run: |
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -o prompt.tmpl \
-            https://raw.githubusercontent.com/4okimi7uki/pvvc/main/internal/ai/templates/analyze.tmpl
-
-      - name: Analyze and notify Slack
-        run: |
-          LLM="${{ inputs.llm || 'gemini' }}"
-          for i in 1 2 3; do
-            pvvc analyze \
-            --llm "$LLM" \
-            --prompt prompt.tmpl \
-            --notify --quiet && exit 0
-            [ $i -lt 3 ] && echo "Attempt $i failed. Retrying in 30s..." && sleep 30
-          done
-          exit 1
+      - name: Aggregate and notify Slack
+        run: pvvc report --notify --quiet
