@@ -7,15 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/4okimi7uki/pvvc/internal/httpclient"
 	rep "github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
 )
-
-const slackTextMaxLength = 3000
 
 type Client struct {
 	webhookURL       string
@@ -36,115 +33,12 @@ func New(webhookURL, serviceName, vercelProjectURL string) (*Client, error) {
 	}, nil
 }
 
-type TextObject struct {
-	Type  string `json:"type"`
-	Text  string `json:"text"`
-	Emoji bool   `json:"emoji,omitempty"`
-}
-
-type Block struct {
-	Type     string       `json:"type"`
-	Text     *TextObject  `json:"text,omitempty"`
-	Elements []TextObject `json:"elements,omitempty"`
-}
-
-type blockPayload struct {
-	Blocks []Block `json:"blocks"`
-}
-
-func (c *Client) Send(ctx context.Context, text string, end time.Time, report []rep.DailyReport, llm string) error {
+func (c *Client) Send(ctx context.Context, aiBody string, end time.Time, report []rep.DailyReport, llm string) error {
 	summary := rep.LatestDaySummary(report)
 	costByService := rep.LatestServiceCosts(end, report)
+	_, _, metricsRows := rep.Metrics(report)
 
-	var sb strings.Builder
-	var costDetail strings.Builder
-	var linkSection strings.Builder
-	var aiTitle strings.Builder
-
-	sb.WriteString("*Summary*\n")
-	// この書き方の方が綺麗に並ぶ気がする
-	for _, row := range summary {
-		fmt.Fprintf(&sb, "%-*s %s\n", 25-len(row.Label), row.Label, row.Value)
-	}
-
-	fmt.Fprint(&costDetail, "```\n")
-	rep.WriteTable(&costDetail, rep.RowsToCells(costByService))
-	fmt.Fprint(&costDetail, "```")
-
-	if c.vercelProjectURL != "" {
-		fmt.Fprint(&linkSection, "🔗 *Links*\n")
-		fmt.Fprintf(&linkSection, " - <%s/usage|Vercel Usage>\n", c.vercelProjectURL)
-		fmt.Fprintf(&linkSection, " - <%s/logs|Vercel Logs>\n", c.vercelProjectURL)
-	}
-
-	summaryText := sb.String()
-	costDetailText := costDetail.String()
-	linkSectionText := linkSection.String()
-	headingTitle := fmt.Sprintf("📊 %s Daily Report", c.serviceName)
-	switch llm {
-	case "", "gemini":
-		_, _ = fmt.Fprint(&aiTitle, ":google-gemini: *AI分析*")
-	case "claude":
-		_, _ = fmt.Fprint(&aiTitle, ":claude_ai_symbol: *AI分析*")
-	default:
-		_, _ = fmt.Fprint(&aiTitle, "🤖 *AI分析*")
-	}
-
-	blocks := []Block{
-		{
-			Type: "header",
-			Text: &TextObject{
-				Type:  "plain_text",
-				Text:  headingTitle,
-				Emoji: true,
-			},
-		},
-		{
-			Type: "context",
-			Elements: []TextObject{
-				{
-					Type:  "plain_text",
-					Text:  "Powered by P.V.V.C.",
-					Emoji: true,
-				},
-			},
-		},
-		{Type: "divider"},
-		{
-			Type: "section",
-			Text: &TextObject{Type: "mrkdwn", Text: summaryText},
-		},
-		{Type: "divider"},
-		{
-			Type: "section",
-			Text: &TextObject{Type: "mrkdwn", Text: aiTitle.String()},
-		},
-		{
-			Type: "section",
-			Text: &TextObject{Type: "mrkdwn", Text: truncate(text, slackTextMaxLength)},
-		},
-		{Type: "divider"},
-		{
-			Type: "section",
-			Text: &TextObject{
-				Type: "mrkdwn",
-				Text: fmt.Sprintf("*:vercel: コスト内訳（%s）*", end.Format("01/02")),
-			},
-		},
-		{
-			Type: "section",
-			Text: &TextObject{Type: "mrkdwn", Text: truncate(costDetailText, slackTextMaxLength)},
-		},
-	}
-	if linkSectionText != "" {
-		blocks = append(blocks,
-			Block{Type: "divider"},
-			Block{
-				Type: "section",
-				Text: &TextObject{Type: "mrkdwn", Text: truncate(linkSectionText, slackTextMaxLength)},
-			},
-		)
-	}
+	blocks := buildSlackBlocks(c.serviceName, llm, aiBody, c.vercelProjectURL, metricsRows, summary, costByService, end)
 
 	body, err := json.Marshal(blockPayload{Blocks: blocks})
 	if err != nil {

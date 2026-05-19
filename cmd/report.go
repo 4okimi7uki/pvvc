@@ -7,6 +7,7 @@ import (
 
 	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/report"
+	"github.com/4okimi7uki/pvvc/internal/slack"
 )
 
 var reportCmd = &cobra.Command{
@@ -16,13 +17,29 @@ var reportCmd = &cobra.Command{
 	Long:         "Fetch GA4 pageviews, Vercel costs, and FX rates, then print a traffic-and-cost report to the terminal.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runWith(func(ctx context.Context) error {
-			rep, err := app.RunMain(cfg, ctx, from, to, raw)
+			rep, err := app.RunMain(cfg, ctx, rootOpts.from, rootOpts.to, raw)
 			if err != nil {
 				return err
 			}
 
 			if !quiet {
-				report.PrintSomeDayReports(from, to, rep, "", "")
+				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, "", "")
+			}
+
+			serviceName := cfg.GetString("service.name")
+			if rootOpts.notify {
+				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"), serviceName, cfg.GetString("vercel.project_url"))
+				if err != nil {
+					return err
+				}
+				analysisResult := ""
+				llm := ""
+
+				err = slackClient.Send(ctx, analysisResult, rootOpts.to, rep, llm)
+
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil
@@ -32,4 +49,5 @@ var reportCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(reportCmd)
+	addCommonFlags(reportCmd)
 }

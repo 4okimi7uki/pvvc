@@ -10,7 +10,7 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/decimalfmt"
 )
 
-func metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]string) {
+func Metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]string) {
 	var (
 		allPv       decimal.Decimal
 		allCost     decimal.Decimal
