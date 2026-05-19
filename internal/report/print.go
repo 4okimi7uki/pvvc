@@ -47,7 +47,7 @@ func PrintSection(label string) {
 
 func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string, llm string) {
 	var (
-		allPv, allCost, metricsRows = metrics(reports)
+		allPv, allCost, metricsRows = Metrics(reports)
 		summaryRows                 = summary(start, end, reports, llm, allPv, allCost)
 		costByService               = LatestServiceCosts(end, reports)
 	)
