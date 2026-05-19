@@ -19,10 +19,14 @@ var (
 	quiet       bool
 	raw         bool
 )
-var (
-	from time.Time
-	to   time.Time
-)
+
+type rootFlags struct {
+	from   time.Time
+	to     time.Time
+	notify bool
+}
+
+var rootOpts rootFlags
 
 var rootCmd = &cobra.Command{
 	Use:          "pvvc",
@@ -30,7 +34,7 @@ var rootCmd = &cobra.Command{
 	Short:        "Analyze Vercel cost against GA4 pageviews",
 	Long:         "pvvc fetches GA4 pageviews, Vercel costs, and FX rates to help you report on and analyze the relationship between traffic and hosting cost.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		if from.After(to) || from.Equal(to) {
+		if rootOpts.from.After(rootOpts.to) || rootOpts.from.Equal(rootOpts.to) {
 			return fmt.Errorf("--from must be before --to")
 		}
 
@@ -57,22 +61,6 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "print version information")
-	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "no print result")
-	rootCmd.PersistentFlags().BoolVar(&raw, "raw", false, "print raw API responses from GA4 and Vercel")
-	_ = rootCmd.PersistentFlags().MarkHidden("raw")
-
-	// Default: 1 week. Use local calendar date stored as UTC midnight to match
-	// bare-date parsing (time.Parse("2006-01-02", ...) always returns UTC midnight).
-	now := time.Now()
-	yesterday := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, time.UTC)
-	rootCmd.PersistentFlags().TimeVar(&from, "from", yesterday.AddDate(0, 0, -6), []string{
-		"2006-01-02",
-		time.RFC3339,
-	}, "start date of the report period (e.g. 2006-01-02)")
-	rootCmd.PersistentFlags().TimeVar(&to, "to", yesterday, []string{
-		"2006-01-02",
-		time.RFC3339,
-	}, "end date of the report period (e.g. 2006-01-03)")
 }
 
 func runWith(fn func(ctx context.Context) error) error {
@@ -99,6 +87,26 @@ func runWith(fn func(ctx context.Context) error) error {
 	fmt.Printf("───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
 
 	return nil
+}
+
+func addCommonFlags(cmd *cobra.Command) {
+	cmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "no print result")
+	cmd.PersistentFlags().BoolVar(&raw, "raw", false, "print raw API responses from GA4 and Vercel")
+	_ = cmd.PersistentFlags().MarkHidden("raw")
+	cmd.PersistentFlags().BoolVar(&rootOpts.notify, "notify", false, "notify Slack with report")
+
+	// Default: 1 week. Use local calendar date stored as UTC midnight to match
+	// bare-date parsing (time.Parse("2006-01-02", ...) always returns UTC midnight).
+	now := time.Now()
+	yesterday := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, time.UTC)
+	cmd.PersistentFlags().TimeVar(&rootOpts.from, "from", yesterday.AddDate(0, 0, -6), []string{
+		"2006-01-02",
+		time.RFC3339,
+	}, "start date of the report period (e.g. 2006-01-02)")
+	cmd.PersistentFlags().TimeVar(&rootOpts.to, "to", yesterday, []string{
+		"2006-01-02",
+		time.RFC3339,
+	}, "end date of the report period (e.g. 2006-01-03)")
 }
 
 func PrintCheckLatestVersion() {
