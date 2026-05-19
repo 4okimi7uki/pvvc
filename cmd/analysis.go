@@ -15,7 +15,6 @@ import (
 )
 
 type analyzeFlags struct {
-	notify     bool
 	promptPath string
 	llm        string
 }
@@ -32,7 +31,7 @@ var analyzeCmd = &cobra.Command{
 			serviceName := cfg.GetString("service.name")
 
 			// build report
-			rep, err := app.RunMain(cfg, ctx, from, to, raw)
+			rep, err := app.RunMain(cfg, ctx, rootOpts.from, rootOpts.to, raw)
 			if err != nil {
 				return err
 			}
@@ -62,15 +61,15 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			if !quiet {
-				report.PrintSomeDayReports(from, to, rep, analysisResult, analyzeOpts.llm)
+				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, analysisResult, analyzeOpts.llm)
 			}
 
-			if analyzeOpts.notify {
+			if rootOpts.notify {
 				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"), serviceName, cfg.GetString("vercel.project_url"))
 				if err != nil {
 					return err
 				}
-				err = slackClient.Send(ctx, analysisResult, to, rep, analyzeOpts.llm)
+				err = slackClient.Send(ctx, analysisResult, rootOpts.to, rep, analyzeOpts.llm)
 
 				if err != nil {
 					return err
@@ -84,7 +83,6 @@ var analyzeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(analyzeCmd)
-	analyzeCmd.Flags().BoolVar(&analyzeOpts.notify, "notify", false, "notify Slack with the analysis result")
 	analyzeCmd.Flags().StringVarP(&analyzeOpts.promptPath, "prompt", "p", "", "path to a custom prompt template file")
 	analyzeCmd.Flags().StringVar(
 		&analyzeOpts.llm,
@@ -92,4 +90,5 @@ func init() {
 		"gemini",
 		"LLM provider/model to use for AI analysis: gemini, claude",
 	)
+	addCommonFlags(analyzeCmd)
 }
