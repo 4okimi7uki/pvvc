@@ -184,7 +184,7 @@ pvvc analyze --notify --quiet
 | `--from`   | -     | 8日前    | 対象期間の開始日 (e.g. `2006-01-02`)              |
 | `--to`     | -     | 昨日     | 対象期間の終了日 (e.g. `2006-01-03`)              |
 | `--quiet`  | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
-| `--notify` | -     | `false`  | 分析結果をSlackに通知 (`analyze`のみ)             |
+| `--notify` | -     | `false`  | 分析/集計結果をSlackに通知                        |
 | `--llm`    | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
 
 ---
