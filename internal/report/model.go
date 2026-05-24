@@ -13,6 +13,7 @@ type DailyReport struct {
 	PV             decimal.Decimal
 	TotalCost      decimal.Decimal
 	TotalCostJPY   decimal.Decimal
+	CostJPYPerPV   decimal.Decimal
 	Rate           decimal.Decimal
 	CostByServices map[string][]vercel.ServiceCost
 }

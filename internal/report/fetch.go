@@ -99,11 +99,22 @@ func FetchDailyReport(
 		key := d.Format("20060102")
 		cost := totalCosts[key]
 		rate := rates[key]
+		totalCostJPY := cost.Mul(rate)
+		pv := pvs[key]
+
+		var costJPYPerPV decimal.Decimal
+		if pv.IsZero() {
+			costJPYPerPV = decimal.Zero
+		} else {
+			costJPYPerPV = totalCostJPY.Div(pv)
+		}
+
 		reports = append(reports, DailyReport{
 			Date:           d,
-			PV:             pvs[key],
+			PV:             pv,
 			TotalCost:      cost,
-			TotalCostJPY:   cost.Mul(rate),
+			TotalCostJPY:   totalCostJPY,
+			CostJPYPerPV:   costJPYPerPV,
 			Rate:           rate,
 			CostByServices: dailyCostByService,
 		})

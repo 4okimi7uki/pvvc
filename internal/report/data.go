@@ -25,10 +25,6 @@ func Metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]strin
 	}
 	for _, r := range reports {
 		noCost := r.TotalCost.IsZero()
-		var _costPerPVJPY decimal.Decimal
-		if !noCost && !r.PV.IsZero() {
-			_costPerPVJPY = r.TotalCostJPY.Div(r.PV)
-		}
 		allPv = allPv.Add(r.PV)
 		allCost = allCost.Add(r.TotalCost)
 
@@ -37,7 +33,7 @@ func Metrics(reports []DailyReport) (decimal.Decimal, decimal.Decimal, [][]strin
 			decimalfmt.DecimalCommaf(r.PV, 0),
 			dash(noCost, decimalfmt.DecimalCommaf(r.TotalCost, 4)),
 			dash(noCost, decimalfmt.DecimalCommaf(r.TotalCostJPY, 2)),
-			dash(noCost || r.PV.IsZero(), decimalfmt.DecimalCommaf(_costPerPVJPY, 4)),
+			dash(noCost || r.PV.IsZero(), decimalfmt.DecimalCommaf(r.CostJPYPerPV, 4)),
 			decimalfmt.DecimalCommaf(r.Rate, 2),
 		})
 
