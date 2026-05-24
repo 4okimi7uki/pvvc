@@ -5,9 +5,9 @@
     <h3 align="center">Page Views Vercel Cost</h3>
 
 ![Go Version](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)
-![CI](https://github.com/4okimi7uki/pvvc/actions/workflows/lint.yml/badge.svg)
+[![CI](https://github.com/4okimi7uki/pvvc/actions/workflows/lint.yml/badge.svg)](https://github.com/4okimi7uki/pvvc/actions/workflows/lint.yml)
+[![Latest Release](https://img.shields.io/github/v/release/4okimi7uki/pvvc?color=ce1484)](https://github.com/4okimi7uki/pvvc/releases)
 ![CLI](https://img.shields.io/badge/type-CLI-7A3EFF)
-![Latest Release](https://img.shields.io/github/v/release/4okimi7uki/pvvc?color=ce1484)
 
 GA4のページビューとVercelのホスティングコストを取得・比較し、  
 **トラフィックとコストのバランスを可視化・分析する** CLIツール
