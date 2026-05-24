@@ -61,7 +61,7 @@ func BuildPromptData(reports []report.DailyReport, serviceName string) PromptDat
 		pv := decimalfmt.DecimalCommaf(r.PV, 0)
 		cost := "$" + decimalfmt.DecimalCommaf(r.TotalCost, 2)
 		costJPY := "¥" + decimalfmt.DecimalCommaf(r.TotalCostJPY, 0)
-		costPerPV := "¥" + decimalfmt.DecimalCommaf(r.TotalCostJPY.Div((r.PV)), 4)
+		costPerPV := "¥" + decimalfmt.DecimalCommaf(r.CostJPYPerPV, 4)
 		rate := decimalfmt.DecimalCommaf(r.Rate, 2)
 
 		rows[i] = ReportRow{
