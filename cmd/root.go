@@ -96,7 +96,7 @@ func runWith(fn func(ctx context.Context) error) error {
 	}
 
 	elapsed := time.Since(executeTime)
-	fmt.Printf("───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
+	fmt.Printf("\n───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
 
 	return nil
 }
