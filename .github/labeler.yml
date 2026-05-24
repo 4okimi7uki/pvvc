@@ -1,0 +1,11 @@
+enhancement:
+  - head-branch: ["^feat/.*", "^feature/.*"]
+
+bug:
+  - head-branch: ["^fix/.*", "^hotfix/.*"]
+
+refactor:
+  - head-branch: ["^refactor/.*"]
+
+documentation:
+  - head-branch: ["^docs/.*"]
