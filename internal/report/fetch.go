@@ -12,6 +12,7 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/fx"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
+	searchconsole "github.com/4okimi7uki/pvvc/internal/datasource/search_console"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/ui"
 )
@@ -20,6 +21,7 @@ func FetchDailyReport(
 	v *viper.Viper,
 	ctx context.Context,
 	ga4Client *ga4.Client,
+	searchConsoleClient *searchconsole.Client,
 	vercelClient *vercel.Client,
 	start time.Time,
 	end time.Time,
@@ -41,6 +43,18 @@ func FetchDailyReport(
 		}
 		pvs = report.TotalPageViewByDay()
 		addDone(ui.Green("  ✔ ") + "GA4")
+
+		return nil
+	})
+
+	eg.Go(func() error {
+		err := searchConsoleClient.FetchSearchConsole(ctx, start.Format("2006-01-02"), end.Format("2006-01-02"))
+		if err != nil {
+			addDone(ui.Red("  ✗ ") + "Search Console")
+			return err
+		}
+		// pvs = report.TotalPageViewByDay()
+		addDone(ui.Green("  ✔ ") + "Search Console")
 
 		return nil
 	})
