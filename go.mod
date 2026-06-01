@@ -4,7 +4,7 @@ go 1.25.4
 
 require (
 	cloud.google.com/go/auth v0.20.0
-	github.com/anthropics/anthropic-sdk-go v1.44.1
+	github.com/anthropics/anthropic-sdk-go v1.45.0
 	github.com/briandowns/spinner v1.23.2
 	github.com/charmbracelet/huh v1.0.0
 	github.com/charmbracelet/lipgloss v1.1.0
@@ -15,8 +15,8 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	golang.org/x/sync v0.20.0
-	google.golang.org/genai v1.57.0
 	google.golang.org/api v0.280.0
+	google.golang.org/genai v1.57.0
 )
 
 require (
