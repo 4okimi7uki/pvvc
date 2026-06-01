@@ -25,6 +25,6 @@ func (t *uaTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func New() *http.Client {
 	return &http.Client{
 		Transport: &uaTransport{base: http.DefaultTransport},
-		Timeout:   20 * time.Second,
+		Timeout:   60 * time.Second,
 	}
 }
