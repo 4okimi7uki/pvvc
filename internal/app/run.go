@@ -10,10 +10,12 @@ import (
 	"cloud.google.com/go/auth/credentials"
 	"github.com/spf13/viper"
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
+	searchconsoledata "google.golang.org/api/searchconsole/v1"
 
 	"github.com/4okimi7uki/pvvc/internal/ai"
 	"github.com/4okimi7uki/pvvc/internal/config"
 	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
+	searchconsole "github.com/4okimi7uki/pvvc/internal/datasource/search_console"
 	"github.com/4okimi7uki/pvvc/internal/datasource/vercel"
 	"github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/ui"
@@ -29,7 +31,8 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool
 
 	creds, err := credentials.DetectDefault(&credentials.DetectOptions{
 		CredentialsJSON: []byte(jsonStr),
-		Scopes:          []string{analyticsdata.AnalyticsReadonlyScope},
+		Scopes: []string{
+			analyticsdata.AnalyticsReadonlyScope, searchconsoledata.WebmastersReadonlyScope},
 	})
 	if err != nil {
 		return []report.DailyReport{}, fmt.Errorf("load ga4 credentials: %w", err)
@@ -40,6 +43,11 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool
 		return []report.DailyReport{}, err
 	}
 	ga4Client.Raw = raw
+
+	searchConsoleClient, err := searchconsole.New(ctx, creds, "https://www.alba.co.jp/")
+	if err != nil {
+		return []report.DailyReport{}, fmt.Errorf("failed to create search console client: %w", err)
+	}
 
 	vercelClient, err := vercel.New(
 		v.GetString("vercel.token"),
@@ -52,7 +60,7 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool
 
 	var reports []report.DailyReport
 	err = ui.WithSpinner("Fetching...", func(update func(string), addDone func(string)) error {
-		reports, err = report.FetchDailyReport(v, ctx, ga4Client, vercelClient, start, end, addDone)
+		reports, err = report.FetchDailyReport(v, ctx, ga4Client, searchConsoleClient, vercelClient, start, end, addDone)
 		return err
 	})
 	if err != nil {
