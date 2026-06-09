@@ -17,13 +17,13 @@ var reportCmd = &cobra.Command{
 	Long:         "Fetch GA4 pageviews, Vercel costs, and FX rates, then print a traffic-and-cost report to the terminal.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return runWith(func(ctx context.Context) error {
-			rep, err := app.RunMain(cfg, ctx, rootOpts.from, rootOpts.to, raw)
+			rep, topPages, err := app.RunMain(cfg, ctx, rootOpts.from, rootOpts.to, raw, rootOpts.topPagesLimit)
 			if err != nil {
 				return err
 			}
 
 			if !quiet {
-				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, "", "")
+				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, "", "", topPages, rootOpts.topPagesLimit)
 			}
 
 			serviceName := cfg.GetString("service.name")
