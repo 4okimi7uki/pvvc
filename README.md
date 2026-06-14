@@ -31,9 +31,10 @@ Gemini / Claude による分析コメント生成、Slack通知まで自動化�
 - 直近7日分の **GA4 PV / Vercel Cost / USDJPY** を自動取得（`--from` / `--to` で期間変更可能）
 - 日別メトリクスを **CLIテーブル** で見やすく表示
 - **Cost per PV** を算出し、コスト効率を可視化
+- **GA4 アクセスランキング** を表示（`--top-pages` で取得件数を指定可能）
 - **Gemini / Claude** によるトレンド分析コメントを生成（`--llm` で切り替え可能）
 - Slack への通知に対応（サマリー・コスト内訳・AI分析・Vercel リンク）
-- `pvvc init` による **インタラクティブな初期設定**
+- `pvvc init` による **インタラクティブな初期設定**（既存設定を prefill した edit mode 対応）
 - `.env` または `~/.config/pvvc/config.toml` で設定可能
 
 ---
@@ -180,13 +181,14 @@ pvvc analyze --notify --quiet
 
 ## Flags
 
-| Flag       | Short | Default  | Description                                       |
-| ---------- | ----- | -------- | ------------------------------------------------- |
-| `--from`   | -     | 8日前    | 対象期間の開始日 (e.g. `2006-01-02`)              |
-| `--to`     | -     | 昨日     | 対象期間の終了日 (e.g. `2006-01-03`)              |
-| `--quiet`  | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
-| `--notify` | -     | `false`  | 分析/集計結果をSlackに通知                        |
-| `--llm`    | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
+| Flag           | Short | Default  | Description                                       |
+| -------------- | ----- | -------- | ------------------------------------------------- |
+| `--from`       | -     | 8日前    | 対象期間の開始日 (e.g. `2006-01-02`)              |
+| `--to`         | -     | 昨日     | 対象期間の終了日 (e.g. `2006-01-03`)              |
+| `--top-pages`  | -     | `20`     | GA4 アクセスランキングの表示件数                  |
+| `--quiet`      | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
+| `--notify`     | -     | `false`  | 分析/集計結果をSlackに通知                        |
+| `--llm`        | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
 
 ---
 
