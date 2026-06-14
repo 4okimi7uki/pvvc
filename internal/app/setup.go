@@ -13,6 +13,19 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/ui"
 )
 
+func loadExistingConfig(filePath string) (config.Config, error) {
+	var cfg config.Config
+	//nolint:gosec // G304: Potential file inclusion via variable
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return cfg, fmt.Errorf("failed to read config file: %w", err)
+	}
+	if err := toml.Unmarshal(data, &cfg); err != nil {
+		return cfg, fmt.Errorf("failed to parse config file: %w", err)
+	}
+	return cfg, nil
+}
+
 func RunSetup() error {
 	var configs config.Config
 	home, err := os.UserHomeDir()
@@ -26,15 +39,15 @@ func RunSetup() error {
 	)
 
 	// check exists
-	override := true
 	if _, err := os.Stat(filePath); err == nil {
-		err = huh.NewConfirm().Title("Config file already exists. Override?").Affirmative("Yes").Negative("No").Value(&override).WithTheme(pvvcTheme()).Run()
+		existing, err := loadExistingConfig(filePath)
 		if err != nil {
-			return fmt.Errorf("failed to check config file: %w", err)
+			return err
 		}
+		configs = existing
 	}
 
-	if override {
+	{
 		form := huh.NewForm(
 			huh.NewGroup(
 				huh.NewNote().
