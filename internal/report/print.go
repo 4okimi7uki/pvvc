@@ -9,6 +9,7 @@ import (
 
 	"github.com/shopspring/decimal"
 
+	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/decimalfmt"
 	"github.com/4okimi7uki/pvvc/internal/ui"
 )
@@ -48,11 +49,13 @@ func PrintSection(label string) {
 	fmt.Printf("\n%s %s\n", label, line)
 }
 
-func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string, llm string) {
+func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string, llm string, topPages []ga4.PagePathRank, topPagesLimit int64) {
 	var (
 		allPv, allCost, metricsRows = Metrics(reports)
 		summaryRows                 = summary(start, end, reports, llm, allPv, allCost)
 		costByService               = LatestServiceCosts(end, reports)
+		topPath                     = formatTopPage(topPages)
+		endStr                      = end.Format("2006-01-02")
 	)
 
 	PrintSection("Summary")
@@ -67,9 +70,13 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 	fmt.Println()
 	printGraph(reports)
 
-	PrintSection("Service Costs on Latest Date")
+	PrintSection(fmt.Sprintf("Service Costs on %s", endStr))
 	fmt.Println()
 	WriteTable(os.Stdout, RowsToCells(costByService))
+
+	PrintSection(fmt.Sprintf("Top %d Page Paths on %s", topPagesLimit, endStr))
+	fmt.Println()
+	WriteTable(os.Stdout, RowsToCells(topPath))
 
 	if aiResponse != "" {
 		PrintSection("AI Analytics")

@@ -31,7 +31,7 @@ var analyzeCmd = &cobra.Command{
 			serviceName := cfg.GetString("service.name")
 
 			// build report
-			rep, err := app.RunMain(cfg, ctx, rootOpts.from, rootOpts.to, raw)
+			rep, topPages, err := app.RunMain(cfg, ctx, rootOpts.from, rootOpts.to, raw, rootOpts.topPagesLimit)
 			if err != nil {
 				return err
 			}
@@ -61,7 +61,7 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			if !quiet {
-				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, analysisResult, analyzeOpts.llm)
+				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, analysisResult, analyzeOpts.llm, topPages, rootOpts.topPagesLimit)
 			}
 
 			if rootOpts.notify {

@@ -19,9 +19,9 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/ui"
 )
 
-func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool) ([]report.DailyReport, error) {
+func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool, topPagesLimit int64) ([]report.DailyReport, []ga4.PagePathRank, error) {
 	if err := config.Validate(v); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	propertyID := v.GetString("ga4.property_id")
@@ -32,12 +32,12 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool
 		Scopes:          []string{analyticsdata.AnalyticsReadonlyScope},
 	})
 	if err != nil {
-		return []report.DailyReport{}, fmt.Errorf("load ga4 credentials: %w", err)
+		return []report.DailyReport{}, []ga4.PagePathRank{}, fmt.Errorf("load ga4 credentials: %w", err)
 	}
 
 	ga4Client, err := ga4.New(ctx, propertyID, creds)
 	if err != nil {
-		return []report.DailyReport{}, err
+		return []report.DailyReport{}, []ga4.PagePathRank{}, err
 	}
 	ga4Client.Raw = raw
 
@@ -46,24 +46,27 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool
 		v.GetString("vercel.team_id"),
 	)
 	if err != nil {
-		return []report.DailyReport{}, fmt.Errorf("failed to create vercel client: %w", err)
+		return []report.DailyReport{}, []ga4.PagePathRank{}, fmt.Errorf("failed to create vercel client: %w", err)
 	}
 	vercelClient.Raw = raw
 
-	var reports []report.DailyReport
+	var (
+		reports  []report.DailyReport
+		topPages []ga4.PagePathRank
+	)
 	err = ui.WithSpinner("Fetching...", func(update func(string), addDone func(string)) error {
-		reports, err = report.FetchDailyReport(v, ctx, ga4Client, vercelClient, start, end, addDone)
+		reports, topPages, err = report.FetchDailyReport(v, ctx, ga4Client, vercelClient, start, end, addDone, topPagesLimit)
 		return err
 	})
 	if err != nil {
-		return []report.DailyReport{}, err
+		return []report.DailyReport{}, []ga4.PagePathRank{}, err
 	}
 
 	if raw {
 		printRawResponses(ga4Client, vercelClient)
 	}
 
-	return reports, nil
+	return reports, topPages, nil
 }
 
 func printRawResponses(ga4Client *ga4.Client, vercelClient *vercel.Client) {

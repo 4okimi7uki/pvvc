@@ -24,8 +24,10 @@ func FetchDailyReport(
 	start time.Time,
 	end time.Time,
 	addDone func(string),
-) ([]DailyReport, error) {
+	topPageLimit int64,
+) ([]DailyReport, []ga4.PagePathRank, error) {
 	var pvs map[string]decimal.Decimal
+	var topPages []ga4.PagePathRank
 	var totalCosts map[string]decimal.Decimal
 	var dailyCostByService map[string][]vercel.ServiceCost
 	var rates map[string]decimal.Decimal
@@ -36,11 +38,23 @@ func FetchDailyReport(
 	eg.Go(func() error {
 		report, err := ga4Client.FetchDailyPageViews(ctx, start.Format("2006-01-02"), end.Format("2006-01-02"))
 		if err != nil {
-			addDone(ui.Red("  ✗ ") + "GA4")
+			addDone(ui.Red("  ✗ ") + "GA4 PV")
 			return err
 		}
 		pvs = report.TotalPageViewByDay()
-		addDone(ui.Green("  ✔ ") + "GA4")
+		addDone(ui.Green("  ✔ ") + "GA4 PV")
+
+		return nil
+	})
+	// GA4 TopPath
+	eg.Go(func() error {
+		report, err := ga4Client.FetchTopPagePaths(ctx, end.Format("2006-01-02"), end.Format("2006-01-02"), topPageLimit)
+		if err != nil {
+			addDone(ui.Red("  ✗ ") + "GA4 Top page path")
+			return err
+		}
+		topPages = report.PagePaths
+		addDone(ui.Green("  ✔ ") + "GA4 Top page path")
 
 		return nil
 	})
@@ -91,7 +105,7 @@ func FetchDailyReport(
 	})
 
 	if err := eg.Wait(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var reports []DailyReport
@@ -119,5 +133,5 @@ func FetchDailyReport(
 			CostByServices: dailyCostByService,
 		})
 	}
-	return reports, nil
+	return reports, topPages, nil
 }
