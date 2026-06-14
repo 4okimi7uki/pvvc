@@ -28,7 +28,31 @@ func parseReport(propertyID string, resp *analyticsdata.RunReportResponse) (*Rep
 			return nil, fmt.Errorf("ga4: failed to parse views %q: %w", row.MetricValues[0].Value, err)
 		}
 
-		report.Rows = append(report.Rows, DailyPageViews{PagePath: "", Views: views, Date: date})
+		report.Rows = append(report.Rows, DailyPageViews{Views: views, Date: date})
+	}
+
+	return report, nil
+}
+func parsePagePath(propertyID string, resp *analyticsdata.RunReportResponse) (*Report, error) {
+	report := &Report{
+		PropertyID: propertyID,
+		PagePaths:  make([]PagePathRank, 0, len(resp.Rows)),
+	}
+
+	for _, row := range resp.Rows {
+		if len(row.DimensionValues) == 0 || len(row.MetricValues) == 0 {
+			continue
+		}
+
+		pagePath := row.DimensionValues[0].Value
+		// pagePath := row.DimensionValues[1].Value
+
+		views, err := strconv.ParseInt(row.MetricValues[0].Value, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("ga4: failed to parse views %q: %w", row.MetricValues[0].Value, err)
+		}
+
+		report.PagePaths = append(report.PagePaths, PagePathRank{Views: views, PagePath: pagePath})
 	}
 
 	return report, nil
@@ -116,6 +140,91 @@ func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate str
 
 		offset += int64(len(resp.Rows))
 		if offset >= resp.RowCount {
+			break
+		}
+	}
+
+	return report, nil
+}
+
+func buildTopPagesRequest(startDate, endDate string, offset int64, limit int64) *analyticsdata.RunReportRequest {
+	return &analyticsdata.RunReportRequest{
+		DateRanges: []*analyticsdata.DateRange{
+			{StartDate: startDate, EndDate: endDate},
+		},
+		Dimensions: []*analyticsdata.Dimension{
+			{Name: "pagePath"},
+		},
+		Metrics: []*analyticsdata.Metric{
+			{Name: "screenPageViews"},
+		},
+		OrderBys: []*analyticsdata.OrderBy{
+			{Metric: &analyticsdata.MetricOrderBy{MetricName: "screenPageViews"}, Desc: true},
+		},
+		Limit:  limit,
+		Offset: offset,
+		DimensionFilter: &analyticsdata.FilterExpression{
+			AndGroup: &analyticsdata.FilterExpressionList{
+				Expressions: []*analyticsdata.FilterExpression{
+					{
+						NotExpression: &analyticsdata.FilterExpression{
+							Filter: &analyticsdata.Filter{
+								FieldName: "sessionSourceMedium",
+								StringFilter: &analyticsdata.StringFilter{
+									MatchType: "PARTIAL_REGEXP",
+									Value:     "SmartNews / app",
+								},
+							},
+						},
+					},
+					{
+						Filter: &analyticsdata.Filter{
+							FieldName: "pageTitle",
+							StringFilter: &analyticsdata.StringFilter{
+								MatchType: "CONTAINS",
+								Value:     "ゴルフ総合サイト ALBA Net",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (c *Client) FetchTopPagePaths(ctx context.Context, startDate, endDate string, limit int64) (*Report, error) {
+	report := &Report{
+		PropertyID: c.propertyID,
+		PagePaths:  make([]PagePathRank, 0),
+	}
+
+	var offset int64
+	for {
+		req := buildTopPagesRequest(startDate, endDate, offset, limit)
+
+		resp, err := c.svc.Properties.RunReport(c.propertyID, req).Context(ctx).Do()
+		if err != nil {
+			return nil, fmt.Errorf("ga4: RunReport failed (offset=%d): %w", offset, err)
+		}
+
+		if c.Raw {
+			if b, e := json.Marshal(resp); e == nil {
+				c.RawPages = append(c.RawPages, b)
+			}
+		}
+
+		if len(resp.Rows) == 0 {
+			break
+		}
+
+		page, err := parsePagePath(c.propertyID, resp)
+		if err != nil {
+			return nil, err
+		}
+		report.PagePaths = append(report.PagePaths, page.PagePaths...)
+
+		offset += int64(len(resp.Rows))
+		if offset >= resp.RowCount || int64(len(report.PagePaths)) >= limit {
 			break
 		}
 	}

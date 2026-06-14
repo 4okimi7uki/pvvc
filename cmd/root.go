@@ -21,9 +21,10 @@ var (
 )
 
 type rootFlags struct {
-	from   time.Time
-	to     time.Time
-	notify bool
+	from          time.Time
+	to            time.Time
+	notify        bool
+	topPagesLimit int64
 }
 
 var rootOpts rootFlags
@@ -94,6 +95,7 @@ func addCommonFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVar(&raw, "raw", false, "print raw API responses from GA4 and Vercel")
 	_ = cmd.PersistentFlags().MarkHidden("raw")
 	cmd.PersistentFlags().BoolVar(&rootOpts.notify, "notify", false, "notify Slack with report")
+	cmd.PersistentFlags().Int64Var(&rootOpts.topPagesLimit, "top-pages", 20, "access top pages limit")
 
 	// Default: 1 week. Use local calendar date stored as UTC midnight to match
 	// bare-date parsing (time.Parse("2006-01-02", ...) always returns UTC midnight).
