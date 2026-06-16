@@ -16,13 +16,15 @@ import (
 
 const barWidth = 100
 
-func WriteTable(w io.Writer, rows [][]string) {
+func StrLen(s string) int { return len(s) }
+
+func WriteTableFn(w io.Writer, rows [][]string, widthFn func(string) int) {
 	colWidths := make([]int, len(rows[0]))
 
 	for _, row := range rows {
 		for i, cell := range row {
-			if len(cell) > colWidths[i] {
-				colWidths[i] = len(cell) + 3
+			if widthFn(cell) > colWidths[i] {
+				colWidths[i] = widthFn(cell) + 3
 			}
 		}
 	}
@@ -30,7 +32,8 @@ func WriteTable(w io.Writer, rows [][]string) {
 	for _, row := range rows {
 		_, _ = fmt.Fprint(w, " ")
 		for i, cell := range row {
-			_, _ = fmt.Fprintf(w, "%-*s  ", colWidths[i], cell)
+			padding := max(colWidths[i]-widthFn(cell), 0)
+			_, _ = fmt.Fprintf(w, "%s%s  ", cell, strings.Repeat(" ", padding))
 		}
 		_, _ = fmt.Fprintln(w)
 	}
@@ -60,11 +63,11 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	PrintSection("Summary")
 	fmt.Println()
-	WriteTable(os.Stdout, RowsToCells(summaryRows))
+	WriteTableFn(os.Stdout, RowsToCells(summaryRows), StrLen)
 
 	PrintSection("Metrics")
 	fmt.Println()
-	WriteTable(os.Stdout, metricsRows)
+	WriteTableFn(os.Stdout, metricsRows, StrLen)
 
 	PrintSection("Graph of CostJPY/PV")
 	fmt.Println()
@@ -72,11 +75,11 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 
 	PrintSection(fmt.Sprintf("Service Costs on %s", endStr))
 	fmt.Println()
-	WriteTable(os.Stdout, RowsToCells(costByService))
+	WriteTableFn(os.Stdout, RowsToCells(costByService), StrLen)
 
 	PrintSection(fmt.Sprintf("Top %d Page Paths on %s", topPagesLimit, endStr))
 	fmt.Println()
-	WriteTable(os.Stdout, RowsToCells(topPath))
+	WriteTableFn(os.Stdout, RowsToCells(topPath), StrLen)
 
 	if aiResponse != "" {
 		PrintSection("AI Analytics")
