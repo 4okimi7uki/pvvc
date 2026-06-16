@@ -135,7 +135,7 @@ func buildVercelCostSection(end time.Time, costByService []rep.Row) []Block {
 func buildGa4TopPathSection(end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
 	var ga4TopPathBlock []Block
 	var paths strings.Builder
-	var resolveTopPage []rep.Row = append([]rep.Row{{Label: "PATH", Value: "PV"}}, topPages...)
+	resolveTopPage := append([]rep.Row{{Label: "PATH", Value: "PV"}}, topPages...)
 	fmt.Fprint(&paths, "```\n")
 	rep.WriteTable(&paths, rep.RowsToCells(resolveTopPage))
 	fmt.Fprint(&paths, "```")
