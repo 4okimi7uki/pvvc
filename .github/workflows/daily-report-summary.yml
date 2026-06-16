@@ -53,4 +53,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Aggregate and notify Slack
-        run: pvvc report --notify --quiet
+        run: pvvc report --notify --quiet --top-pages 15
