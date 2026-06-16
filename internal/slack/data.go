@@ -83,7 +83,7 @@ func buildMetricsSection(metricsRows [][]string) []Block {
 	var metricsTable strings.Builder
 	var metricsBlock []Block
 
-	rep.WriteTable(&metricsTable, metricsRows)
+	rep.WriteTableFn(&metricsTable, metricsRows, rep.StrLen)
 
 	metricsBlock = append(metricsBlock,
 		Block{
@@ -111,7 +111,7 @@ func buildVercelCostSection(end time.Time, costByService []rep.Row) []Block {
 	var costDetail strings.Builder
 
 	fmt.Fprint(&costDetail, "```\n")
-	rep.WriteTable(&costDetail, rep.RowsToCells(costByService))
+	rep.WriteTableFn(&costDetail, rep.RowsToCells(costByService), rep.StrLen)
 	fmt.Fprint(&costDetail, "```")
 
 	vercelCostBlock = append(vercelCostBlock,
@@ -132,13 +132,11 @@ func buildVercelCostSection(end time.Time, costByService []rep.Row) []Block {
 	return vercelCostBlock
 }
 
-func buildGa4TopPathSection(end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
+func buildGa4TopPathSection(end time.Time, topPages []rep.Row, topPageLimit int64, serviceURL string) []Block {
 	var ga4TopPathBlock []Block
-	var paths strings.Builder
-	resolveTopPage := append([]rep.Row{{Label: "PATH", Value: "PV"}}, topPages...)
-	fmt.Fprint(&paths, "```\n")
-	rep.WriteTable(&paths, rep.RowsToCells(resolveTopPage))
-	fmt.Fprint(&paths, "```")
+	topPageWithHeader := append([]rep.Row{{Label: "PATH", Value: "PV"}}, toLinkedRows(topPages, serviceURL)...)
+
+	chunkedPaths := chunkRowBySize(topPageWithHeader, slackTextMaxLength)
 
 	ga4TopPathBlock = append(ga4TopPathBlock,
 		Block{
@@ -148,15 +146,24 @@ func buildGa4TopPathSection(end time.Time, topPages []rep.Row, topPageLimit int6
 				Text: fmt.Sprintf("*:google_analytics_アナリティクス: Top %d アクセスパス（%s）*", topPageLimit, end.Format("01/02")),
 			},
 		},
-		Block{
-			Type: "section",
-			Text: &TextObject{
-				Type: "mrkdwn",
-				Text: paths.String(),
-			},
-		},
-		Block{Type: "divider"},
 	)
+	for _, cp := range chunkedPaths {
+		var paths strings.Builder
+		fmt.Fprint(&paths, "```\n")
+		rep.WriteTableFn(&paths, rep.RowsToCells(cp), slackDisplayLen)
+		fmt.Fprint(&paths, "```")
+
+		ga4TopPathBlock = append(ga4TopPathBlock,
+			Block{
+				Type: "section",
+				Text: &TextObject{
+					Type: "mrkdwn",
+					Text: paths.String(),
+				},
+			},
+		)
+	}
+	ga4TopPathBlock = append(ga4TopPathBlock, Block{Type: "divider"})
 
 	return ga4TopPathBlock
 }
@@ -181,7 +188,7 @@ func buildLinkSection(vercelProjectURL string) []Block {
 	return linkSection
 }
 
-func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL string, metrics [][]string, summary, costByService []rep.Row, end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
+func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL, serviceURL string, metrics [][]string, summary, costByService []rep.Row, end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
 	var blocks []Block
 	var mainSection []Block
 
@@ -193,7 +200,7 @@ func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL string, metrics
 	}
 	vercelCostSection := buildVercelCostSection(end, costByService)
 
-	topPathSection := buildGa4TopPathSection(end, topPages, topPageLimit)
+	topPathSection := buildGa4TopPathSection(end, topPages, topPageLimit, serviceURL)
 
 	blocks = slices.Concat(header, mainSection, vercelCostSection, topPathSection)
 

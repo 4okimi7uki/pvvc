@@ -20,9 +20,10 @@ type Client struct {
 	httpClient       *http.Client
 	serviceName      string
 	vercelProjectURL string
+	serviceURL       string
 }
 
-func New(webhookURL, serviceName, vercelProjectURL string) (*Client, error) {
+func New(webhookURL, serviceName, vercelProjectURL, serviceURL string) (*Client, error) {
 	if webhookURL == "" {
 		return nil, fmt.Errorf("slack: webhook url is required")
 	}
@@ -31,6 +32,7 @@ func New(webhookURL, serviceName, vercelProjectURL string) (*Client, error) {
 		httpClient:       httpclient.New(),
 		serviceName:      serviceName,
 		vercelProjectURL: vercelProjectURL,
+		serviceURL:       serviceURL,
 	}, nil
 }
 
@@ -42,7 +44,7 @@ func (c *Client) Send(ctx context.Context, aiBody string, end time.Time, report 
 		topPath           = rep.FormatTopPage(topPages)
 	)
 
-	blocks := buildSlackBlocks(c.serviceName, llm, aiBody, c.vercelProjectURL, metricsRows, summary, costByService, end, topPath, topPageLimit)
+	blocks := buildSlackBlocks(c.serviceName, llm, aiBody, c.vercelProjectURL, c.serviceURL, metricsRows, summary, costByService, end, topPath, topPageLimit)
 
 	body, err := json.Marshal(blockPayload{Blocks: blocks})
 	if err != nil {
@@ -79,12 +81,4 @@ func (c *Client) Send(ctx context.Context, aiBody string, end time.Time, report 
 	fmt.Println()
 
 	return nil
-}
-
-func truncate(s string, max int) string {
-	runes := []rune(s)
-	if len(runes) <= max {
-		return s
-	}
-	return string(runes[:max])
 }

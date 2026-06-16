@@ -65,7 +65,7 @@ var analyzeCmd = &cobra.Command{
 			}
 
 			if rootOpts.notify {
-				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"), serviceName, cfg.GetString("vercel.project_url"))
+				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"), serviceName, cfg.GetString("vercel.project_url"), cfg.GetString("service.url"))
 				if err != nil {
 					return err
 				}

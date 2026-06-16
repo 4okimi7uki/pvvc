@@ -24,6 +24,7 @@ type SlackConfig struct {
 
 type ServiceConfig struct {
 	Name string `toml:"name"`
+	URL  string `toml:"url"`
 }
 
 type Config struct {

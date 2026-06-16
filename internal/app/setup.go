@@ -113,6 +113,11 @@ func RunSetup() error {
 					Description("Display name shown in reports and Slack messages.").
 					EchoMode(huh.EchoModeNormal).
 					Value(&configs.Service.Name),
+				huh.NewInput().
+					Title("Service URL").
+					Description("Base URL used to build page links in Slack notifications.\ne.g. https://www.example.com").
+					EchoMode(huh.EchoModeNormal).
+					Value(&configs.Service.URL),
 			),
 		).WithTheme(pvvcTheme())
 		if err := form.Run(); err != nil {
