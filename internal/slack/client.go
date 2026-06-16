@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/4okimi7uki/pvvc/internal/datasource/ga4"
 	"github.com/4okimi7uki/pvvc/internal/httpclient"
 	rep "github.com/4okimi7uki/pvvc/internal/report"
 	"github.com/4okimi7uki/pvvc/internal/retry"
@@ -33,12 +34,15 @@ func New(webhookURL, serviceName, vercelProjectURL string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Send(ctx context.Context, aiBody string, end time.Time, report []rep.DailyReport, llm string) error {
-	summary := rep.LatestDaySummary(report)
-	costByService := rep.LatestServiceCosts(end, report)
-	_, _, metricsRows := rep.Metrics(report)
+func (c *Client) Send(ctx context.Context, aiBody string, end time.Time, report []rep.DailyReport, llm string, topPages []ga4.PagePathRank, topPageLimit int64) error {
+	var (
+		summary           = rep.LatestDaySummary(report)
+		costByService     = rep.LatestServiceCosts(end, report)
+		_, _, metricsRows = rep.Metrics(report)
+		topPath           = rep.FormatTopPage(topPages)
+	)
 
-	blocks := buildSlackBlocks(c.serviceName, llm, aiBody, c.vercelProjectURL, metricsRows, summary, costByService, end)
+	blocks := buildSlackBlocks(c.serviceName, llm, aiBody, c.vercelProjectURL, metricsRows, summary, costByService, end, topPath, topPageLimit)
 
 	body, err := json.Marshal(blockPayload{Blocks: blocks})
 	if err != nil {

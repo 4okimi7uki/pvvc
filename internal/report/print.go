@@ -54,7 +54,7 @@ func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse
 		allPv, allCost, metricsRows = Metrics(reports)
 		summaryRows                 = summary(start, end, reports, llm, allPv, allCost)
 		costByService               = LatestServiceCosts(end, reports)
-		topPath                     = formatTopPage(topPages)
+		topPath                     = FormatTopPage(topPages)
 		endStr                      = end.Format("2006-01-02")
 	)
 
