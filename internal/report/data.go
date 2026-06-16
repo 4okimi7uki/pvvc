@@ -119,9 +119,7 @@ func LatestServiceCosts(end time.Time, reports []DailyReport) []Row {
 	return costByService
 }
 
-// ---
-
-func formatTopPage(topPages []ga4.PagePathRank) []Row {
+func FormatTopPage(topPages []ga4.PagePathRank) []Row {
 	var formattedTopPage []Row
 	for _, topPage := range topPages {
 		views := decimal.NewFromInt(topPage.Views)

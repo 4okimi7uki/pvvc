@@ -132,6 +132,35 @@ func buildVercelCostSection(end time.Time, costByService []rep.Row) []Block {
 	return vercelCostBlock
 }
 
+func buildGa4TopPathSection(end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
+	var ga4TopPathBlock []Block
+	var paths strings.Builder
+	var resolveTopPage []rep.Row = append([]rep.Row{{Label: "PATH", Value: "PV"}}, topPages...)
+	fmt.Fprint(&paths, "```\n")
+	rep.WriteTable(&paths, rep.RowsToCells(resolveTopPage))
+	fmt.Fprint(&paths, "```")
+
+	ga4TopPathBlock = append(ga4TopPathBlock,
+		Block{
+			Type: "section",
+			Text: &TextObject{
+				Type: "mrkdwn",
+				Text: fmt.Sprintf("*:google_analytics_アナリティクス: Top %d アクセスパス（%s）*", topPageLimit, end.Format("01/02")),
+			},
+		},
+		Block{
+			Type: "section",
+			Text: &TextObject{
+				Type: "mrkdwn",
+				Text: paths.String(),
+			},
+		},
+		Block{Type: "divider"},
+	)
+
+	return ga4TopPathBlock
+}
+
 func buildLinkSection(vercelProjectURL string) []Block {
 	if vercelProjectURL == "" {
 		return nil
@@ -152,7 +181,7 @@ func buildLinkSection(vercelProjectURL string) []Block {
 	return linkSection
 }
 
-func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL string, metrics [][]string, summary, costByService []rep.Row, end time.Time) []Block {
+func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL string, metrics [][]string, summary, costByService []rep.Row, end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
 	var blocks []Block
 	var mainSection []Block
 
@@ -164,7 +193,9 @@ func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL string, metrics
 	}
 	vercelCostSection := buildVercelCostSection(end, costByService)
 
-	blocks = slices.Concat(header, mainSection, vercelCostSection)
+	topPathSection := buildGa4TopPathSection(end, topPages, topPageLimit)
+
+	blocks = slices.Concat(header, mainSection, vercelCostSection, topPathSection)
 
 	// 末尾に結合する
 	blocks = slices.Concat(blocks, buildLinkSection(vercelProjectURL))
