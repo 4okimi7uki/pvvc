@@ -28,6 +28,7 @@ jobs:
       PROPERTY_ID: ${{ secrets.PROPERTY_ID }}
       GOOGLE_ANALYTICS_CREDENTIAL: ${{ secrets.GOOGLE_ANALYTICS_CREDENTIAL }}
       TARGET_WEBSITE_NAME: ${{ secrets.TARGET_WEBSITE_NAME }}
+      BASE_URL: ${{ secrets.BASE_URL }}
       WEBHOOK_PROD: ${{ secrets.WEBHOOK_PROD }}
       WEBHOOK_DEV: ${{ secrets.WEBHOOK_DEV }}
 

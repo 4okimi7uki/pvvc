@@ -38,6 +38,7 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
       TARGET_WEBSITE_NAME: ${{ secrets.TARGET_WEBSITE_NAME }}
+      BASE_URL: ${{ secrets.BASE_URL }}
       WEBHOOK_PROD: ${{ secrets.WEBHOOK_PROD }}
       WEBHOOK_DEV: ${{ secrets.WEBHOOK_DEV }}
 
