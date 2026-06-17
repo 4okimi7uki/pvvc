@@ -40,6 +40,7 @@ func New() *viper.Viper {
 	_ = v.BindEnv("ai.claude_key", "CLAUDE_API_KEY")
 	_ = v.BindEnv("slack.webhook_url", "SLACK_WEBHOOK_URL")
 	_ = v.BindEnv("service.name", "TARGET_WEBSITE_NAME")
+	_ = v.BindEnv("service.url", "BASE_URL")
 
 	return v
 }
