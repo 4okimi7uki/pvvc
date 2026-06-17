@@ -33,7 +33,7 @@ Gemini / Claude による分析コメント生成、Slack通知まで自動化�
 - **Cost per PV** を算出し、コスト効率を可視化
 - **GA4 アクセスランキング** を表示（`--top-pages` で取得件数を指定可能）
 - **Gemini / Claude** によるトレンド分析コメントを生成（`--llm` で切り替え可能）
-- Slack への通知に対応（サマリー・コスト内訳・AI分析・Vercel リンク）
+- Slack への通知に対応（サマリー・コスト内訳・AI分析・Vercel リンク・GA4ページリンク）
 - `pvvc init` による **インタラクティブな初期設定**（既存設定を prefill した edit mode 対応）
 - `.env` または `~/.config/pvvc/config.toml` で設定可能
 
@@ -116,8 +116,11 @@ CLAUDE_API_KEY=<Claude API Key>
 # Slack
 SLACK_WEBHOOK_URL=<Incoming Webhook URL>
 
-# target web site name
+# site name
 TARGET_WEBSITE_NAME=<Website Name>
+
+# site base URL (任意: Slack 通知のGA4ページリンクに使用)
+BASE_URL=<https://www.example.com>
 ```
 
 > **設定の優先度:** 環境変数 / `.env` > `~/.config/pvvc/config.toml`
@@ -161,6 +164,7 @@ Slack 通知には以下が含まれます:
 - AI 分析コメント（Gemini / Claude アイコン付き）
 - サービス別コスト内訳（前日分）
 - `VERCEL_PROJECT_URL` を設定した場合は Usage・Logs へのリンク
+- GA4 アクセスランキングの各ページをリンク付きで表示
 
 ### Suppress terminal output (quiet mode)
 
@@ -181,14 +185,14 @@ pvvc analyze --notify --quiet
 
 ## Flags
 
-| Flag           | Short | Default  | Description                                       |
-| -------------- | ----- | -------- | ------------------------------------------------- |
-| `--from`       | -     | 8日前    | 対象期間の開始日 (e.g. `2006-01-02`)              |
-| `--to`         | -     | 昨日     | 対象期間の終了日 (e.g. `2006-01-03`)              |
-| `--top-pages`  | -     | `20`     | GA4 アクセスランキングの表示件数                  |
-| `--quiet`      | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
-| `--notify`     | -     | `false`  | 分析/集計結果をSlackに通知                        |
-| `--llm`        | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
+| Flag          | Short | Default  | Description                                       |
+| ------------- | ----- | -------- | ------------------------------------------------- |
+| `--from`      | -     | 8日前    | 対象期間の開始日 (e.g. `2006-01-02`)              |
+| `--to`        | -     | 昨日     | 対象期間の終了日 (e.g. `2006-01-03`)              |
+| `--top-pages` | -     | `20`     | GA4 アクセスランキングの表示件数                  |
+| `--quiet`     | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
+| `--notify`    | -     | `false`  | 分析/集計結果をSlackに通知                        |
+| `--llm`       | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
 
 ---
 
