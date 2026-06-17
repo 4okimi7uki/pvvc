@@ -134,7 +134,7 @@ func buildVercelCostSection(end time.Time, costByService []rep.Row) []Block {
 
 func buildGa4TopPathSection(end time.Time, topPages []rep.Row, topPageLimit int64, serviceURL string) []Block {
 	var ga4TopPathBlock []Block
-	topPageWithHeader := append([]rep.Row{{Label: "PATH", Value: "PV"}}, toLinkedRows(topPages, serviceURL)...)
+	topPageWithHeader := append([]rep.Row{{Label: "URL", Value: "PV"}}, toLinkedRows(topPages, serviceURL)...)
 
 	chunkedPaths := chunkRowBySize(topPageWithHeader, slackTextMaxLength)
 
