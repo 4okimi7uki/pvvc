@@ -55,3 +55,11 @@ jobs:
 
       - name: Aggregate and notify Slack
         run: pvvc report --notify --quiet --top-pages 15
+
+      - name: Build monthly chart page
+        env:
+          TZ: Asia/Tokyo
+        run: |
+          to=$(date -d 'yesterday' '+%Y-%m-%d')
+          from=$(date -d 'yesterday -1 month' '+%Y-%m-%d')
+          pvvc report --quiet --from "$from" --to "$to" --html=web/index.html
