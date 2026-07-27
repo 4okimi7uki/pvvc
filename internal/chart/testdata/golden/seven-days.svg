@@ -35,7 +35,7 @@
 <circle cx="792.64" cy="34.72" r="3" fill="#fff" stroke="#e06c00" stroke-width="2"/>
 <circle cx="968.79" cy="31.53" r="3" fill="#fff" stroke="#e06c00" stroke-width="2"/>
 <circle cx="1144.93" cy="63.35" r="3" fill="#fff" stroke="#e06c00" stroke-width="2"/>
-<text x="968.79" y="21.53" text-anchor="middle" font-size="11" font-weight="600" fill="#e06c00">859,241</text>
+<text x="968.79" y="21.53" text-anchor="middle" font-size="11" font-weight="600" fill="#e06c00" stroke="white" stroke-width="2" paint-order="stroke fill">859,241</text>
 <g font-size="11" fill="#8f8f8f">
 <line x1="0" y1="224" x2="1233" y2="224" stroke="#ebebeb" shape-rendering="crispEdges"/>
 <text x="88.07" y="244" text-anchor="middle">Jul 19</text>
