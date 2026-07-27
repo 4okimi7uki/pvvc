@@ -9,7 +9,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/4okimi7uki/pvvc?color=ce1484)](https://github.com/4okimi7uki/pvvc/releases)
 ![CLI](https://img.shields.io/badge/type-CLI-7A3EFF)
 
-GA4のページビューとVercelのホスティングコストを取得・比較し、  
+GA4のページビューとVercelのホスティングコストを取得・比較し、
 **トラフィックとコストのバランスを可視化・分析する** CLIツール
 
 </div>
@@ -18,10 +18,10 @@ GA4のページビューとVercelのホスティングコストを取得・比�
 
 ## Overview
 
-**P.V.V.C** は、GA4のPVとVercelのホスティングコストを並べて見ながら、  
+**P.V.V.C** は、GA4のPVとVercelのホスティングコストを並べて見ながら、
 日々のトラフィック推移とコスト効率を把握するためのCLIツールです。
 
-日別レポートの出力に加えて、為替レートを用いたJPY換算、  
+日別レポートの出力に加えて、為替レートを用いたJPY換算、
 Gemini / Claude による分析コメント生成、Slack通知まで自動化できます。
 
 ---
@@ -85,7 +85,7 @@ flowchart LR
 
 ### 推奨: pvvc init
 
-インタラクティブな初期設定コマンドで、認証情報を対話形式で入力できます。  
+インタラクティブな初期設定コマンドで、認証情報を対話形式で入力できます。
 設定は `~/.config/pvvc/config.toml` に保存されます。
 
 ```bash
@@ -94,7 +94,7 @@ pvvc init
 
 ### 手動設定: 環境変数 / .env
 
-プロジェクトルートに `.env` を作成するか、環境変数として設定してください。  
+プロジェクトルートに `.env` を作成するか、環境変数として設定してください。
 環境変数は `.config` ファイルより優先されます。
 
 ```env
@@ -192,7 +192,35 @@ pvvc analyze --notify --quiet
 | `--top-pages` | -     | `20`     | GA4 アクセスランキングの表示件数                  |
 | `--quiet`     | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
 | `--notify`    | -     | `false`  | 分析/集計結果をSlackに通知                        |
+| `--svg`       | -     | -        | コスト×PVのグラフをSVGで出力（下記参照）          |
+| `--html`      | -     | -        | 上記グラフを埋め込んだHTMLを出力（下記参照）      |
 | `--llm`       | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
+
+### `--svg`
+
+日次コスト（棒）と PV（折れ線）を重ねた二軸グラフを SVG で書き出します。値は省略可能です。
+
+```bash
+pvvc report --svg                    # ./pvvc_svg/pvvc-20260501_20260726.svg に出力
+pvvc report --svg=docs/cost.svg      # パス指定（pvvc_svg/ は使わず、ディレクトリは自動で作成）
+pvvc report --svg=- > chart.svg      # 標準出力に流す
+```
+
+値をスペース区切りでは渡せません（`--svg out.svg` ではなく `--svg=out.svg`）。
+`--svg=-` のときはターミナル向けの出力が標準エラー出力に切り替わるので、そのままパイプできます。
+
+### `--html`
+
+同じグラフを SVG のまま埋め込んだ HTML を書き出します。使い方は `--svg` と同じです。
+
+```bash
+pvvc report --html                   # ./pvvc_html/pvvc-20260501_20260726.html に出力
+pvvc report --html=docs/index.html   # パス指定（ディレクトリは自動で作成）
+pvvc report --html=- > chart.html    # 標準出力に流す
+```
+
+`--svg` との併用は可能ですが、`--svg=-` と `--html=-` の同時指定は
+標準出力で混ざるためエラーになります。
 
 ---
 

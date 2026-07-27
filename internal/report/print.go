@@ -48,8 +48,41 @@ func RowsToCells(rows []Row) [][]string {
 }
 
 func PrintSection(label string) {
+	FprintSection(os.Stdout, label)
+}
+
+// FprintSection は見出しの出力先を選べる PrintSection。
+// SVG を標準出力に流すときに stderr へ逃がすために使う。
+func FprintSection(w io.Writer, label string) {
 	line := strings.Repeat(ui.MossGray("─"), barWidth-len(label))
-	fmt.Printf("\n%s %s\n", label, line)
+	_, _ = fmt.Fprintf(w, "\n%s %s\n", label, line)
+}
+
+// FprintSlackSent は Slack 送信完了のセクション。
+// slack.Send は送信だけを担うので、表示はここが持つ。
+func FprintSlackSent(w io.Writer) {
+	FprintSection(w, "Notification")
+	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w, " Sent the analysis result to Slack 🔔")
+	_, _ = fmt.Fprintln(w)
+}
+
+// FprintSVGBuilt はチャート書き出し完了のセクション。
+func FprintSVGBuilt(w io.Writer, path string) {
+	FprintSection(w, "SVG")
+	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w, " Built the traffic-and-cost chart 📊")
+	_, _ = fmt.Fprintf(w, " %s %s\n", "::file::", path)
+	_, _ = fmt.Fprintln(w)
+}
+
+// FprintHTMLBuilt はチャートを埋め込んだ HTML 書き出し完了のセクション。
+func FprintHTMLBuilt(w io.Writer, path string) {
+	FprintSection(w, "HTML")
+	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w, " Built the standalone chart page 🖼️")
+	_, _ = fmt.Fprintf(w, " %s %s\n", "::file::", path)
+	_, _ = fmt.Fprintln(w)
 }
 
 func PrintSomeDayReports(start, end time.Time, reports []DailyReport, aiResponse string, llm string, topPages []ga4.PagePathRank, topPagesLimit int64) {

@@ -25,6 +25,8 @@ type rootFlags struct {
 	to            time.Time
 	notify        bool
 	topPagesLimit int64
+	svgPath       string
+	htmlPath      string
 }
 
 var rootOpts rootFlags
@@ -37,6 +39,10 @@ var rootCmd = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if rootOpts.from.After(rootOpts.to) || rootOpts.from.Equal(rootOpts.to) {
 			return fmt.Errorf("--from must be before --to")
+		}
+		// 両方を標準出力に流すと混ざって両方壊れる。
+		if svgToStdout() && htmlToStdout() {
+			return fmt.Errorf("--svg=- and --html=- cannot be used together")
 		}
 
 		return nil
@@ -69,7 +75,7 @@ func runWith(fn func(ctx context.Context) error) error {
 
 	resolvedVersion := gh.ResolvedVersion()
 	ctx := context.Background()
-	ui.PrintLogo(resolvedVersion)
+	ui.FprintLogo(chromeOut(), resolvedVersion)
 
 	configWarnings := config.Warnings(cfg)
 	if len(configWarnings) > 0 {
@@ -85,7 +91,7 @@ func runWith(fn func(ctx context.Context) error) error {
 	}
 
 	elapsed := time.Since(executeTime)
-	fmt.Printf("\n───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
+	_, _ = fmt.Fprintf(chromeOut(), "\n───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
 
 	return nil
 }
@@ -96,6 +102,10 @@ func addCommonFlags(cmd *cobra.Command) {
 	_ = cmd.PersistentFlags().MarkHidden("raw")
 	cmd.PersistentFlags().BoolVar(&rootOpts.notify, "notify", false, "notify Slack with report")
 	cmd.PersistentFlags().Int64Var(&rootOpts.topPagesLimit, "top-pages", 20, "access top pages limit")
+	cmd.PersistentFlags().StringVar(&rootOpts.svgPath, "svg", "", "write the chart as SVG to this path (default: pvvc-<from>_<to>.svg)")
+	cmd.PersistentFlags().Lookup("svg").NoOptDefVal = "auto"
+	cmd.PersistentFlags().StringVar(&rootOpts.htmlPath, "html", "", "write the chart as a standalone HTML page to this path (default: pvvc_html/pvvc-<from>_<to>.html)")
+	cmd.PersistentFlags().Lookup("html").NoOptDefVal = "auto"
 
 	// Default: 1 week. Use local calendar date stored as UTC midnight to match
 	// bare-date parsing (time.Parse("2006-01-02", ...) always returns UTC midnight).
