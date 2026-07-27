@@ -14,3 +14,4 @@ internal/chart/testdata/preview.html
 
 # --svg のデフォルト出力先
 pvvc_svg/
+.DS_Store
