@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" width="720" height="200" font-family="Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" role="img" aria-label="Vercel daily cost with GA4 pageviews overlaid">
+<g transform="translate(58,16)" font-size="11" fill="#8f8f8f"><rect x="0" y="-7" width="9" height="9" rx="1.5" fill="#0072f5" opacity="0.85"/><text x="15" y="1">Vercel cost / day (USD)</text><line x1="162" y1="-3" x2="184" y2="-3" stroke="#e06c00" stroke-width="2"/><circle cx="173" cy="-3" r="2.8" fill="#e06c00"/><text x="190" y="1">GA4 pageviews</text></g>
+<g transform="translate(58,26)">
+<g font-size="11" fill="#0072f5">
+<line x1="0" y1="124" x2="584" y2="124" stroke="#ebebeb" stroke-width="1" shape-rendering="crispEdges"/><text x="-10" y="128" text-anchor="end">$0</text>
+<line x1="0" y1="99.20" x2="584" y2="99.20" stroke="#ebebeb" stroke-width="1" shape-rendering="crispEdges"/><text x="-10" y="103.20" text-anchor="end">$75</text>
+<line x1="0" y1="74.40" x2="584" y2="74.40" stroke="#ebebeb" stroke-width="1" shape-rendering="crispEdges"/><text x="-10" y="78.40" text-anchor="end">$150</text>
+<line x1="0" y1="49.60" x2="584" y2="49.60" stroke="#ebebeb" stroke-width="1" shape-rendering="crispEdges"/><text x="-10" y="53.60" text-anchor="end">$225</text>
+<line x1="0" y1="24.80" x2="584" y2="24.80" stroke="#ebebeb" stroke-width="1" shape-rendering="crispEdges"/><text x="-10" y="28.80" text-anchor="end">$300</text>
+<line x1="0" y1="0" x2="584" y2="0" stroke="#ebebeb" stroke-width="1" shape-rendering="crispEdges"/><text x="-10" y="4" text-anchor="end">$375</text>
+</g>
+<g font-size="11" fill="#e06c00">
+<text x="595" y="-8" font-size="10" opacity="0.8">PV</text>
+<line x1="584" y1="124" x2="589" y2="124" stroke="#e06c00" stroke-width="1" opacity="0.5"/><text x="595" y="128">0</text>
+<line x1="584" y1="99.20" x2="589" y2="99.20" stroke="#e06c00" stroke-width="1" opacity="0.5"/><text x="595" y="103.20">200k</text>
+<line x1="584" y1="74.40" x2="589" y2="74.40" stroke="#e06c00" stroke-width="1" opacity="0.5"/><text x="595" y="78.40">400k</text>
+<line x1="584" y1="49.60" x2="589" y2="49.60" stroke="#e06c00" stroke-width="1" opacity="0.5"/><text x="595" y="53.60">600k</text>
+<line x1="584" y1="24.80" x2="589" y2="24.80" stroke="#e06c00" stroke-width="1" opacity="0.5"/><text x="595" y="28.80">800k</text>
+<line x1="584" y1="0" x2="589" y2="0" stroke="#e06c00" stroke-width="1" opacity="0.5"/><text x="595" y="4">1M</text>
+</g>
+<g fill="#0072f5" opacity="0.45">
+<rect x="1.40" y="63.80" width="3.55" height="60.20"/>
+<rect x="7.74" y="51.90" width="3.55" height="72.10"/>
+<rect x="14.09" y="56.27" width="3.55" height="67.73"/>
+<rect x="20.44" y="54.18" width="3.55" height="69.82"/>
+<rect x="26.79" y="67.11" width="3.55" height="56.89"/>
+<rect x="33.14" y="73.81" width="3.55" height="50.19"/>
+<rect x="39.48" y="66.32" width="3.55" height="57.68"/>
+<rect x="45.83" y="63.42" width="3.55" height="60.58"/>
+<rect x="52.18" y="48.88" width="3.55" height="75.12"/>
+<rect x="58.53" y="45.76" width="3.55" height="78.24"/>
+<rect x="64.87" y="57.11" width="3.55" height="66.89"/>
+<rect x="71.22" y="59.52" width="3.55" height="64.48"/>
+<rect x="77.57" y="70.67" width="3.55" height="53.33"/>
+<rect x="83.92" y="66.97" width="3.55" height="57.03"/>
+<rect x="90.27" y="52.90" width="3.55" height="71.10"/>
+<rect x="96.61" y="50.71" width="3.55" height="73.29"/>
+<rect x="102.96" y="39.93" width="3.55" height="84.07"/>
+<rect x="109.31" y="49.00" width="3.55" height="75.00"/>
+<rect x="115.66" y="62.25" width="3.55" height="61.75"/>
+<rect x="122.01" y="62.40" width="3.55" height="61.60"/>
+<rect x="128.35" y="65.78" width="3.55" height="58.22"/>
+<rect x="134.70" y="51.86" width="3.55" height="72.14"/>
+<rect x="141.05" y="38.93" width="3.55" height="85.07"/>
+<rect x="147.40" y="43.60" width="3.55" height="80.40"/>
+<rect x="153.74" y="40.99" width="3.55" height="83.01"/>
+<rect x="160.09" y="57.27" width="3.55" height="66.73"/>
+<rect x="166.44" y="64.30" width="3.55" height="59.70"/>
+<rect x="172.79" y="56.16" width="3.55" height="67.84"/>
+<rect x="179.14" y="52.90" width="3.55" height="71.10"/>
+<rect x="185.48" y="35.01" width="3.55" height="88.99"/>
+<rect x="191.83" y="32.78" width="3.55" height="91.22"/>
+<rect x="198.18" y="45.20" width="3.55" height="78.80"/>
+<rect x="204.53" y="48.31" width="3.55" height="75.69"/>
+<rect x="210.87" y="62.00" width="3.55" height="62.00"/>
+<rect x="217.22" y="56.80" width="3.55" height="67.20"/>
+<rect x="223.57" y="41.37" width="3.55" height="82.63"/>
+<rect x="229.92" y="38.56" width="3.55" height="85.44"/>
+<rect x="236.27" y="25.51" width="3.55" height="98.49"/>
+<rect x="242.61" y="37.41" width="3.55" height="86.59"/>
+<rect x="248.96" y="51.76" width="3.55" height="72.24"/>
+<rect x="255.31" y="52.53" width="3.55" height="71.47"/>
+<rect x="261.66" y="56.80" width="3.55" height="67.20"/>
+<rect x="268.01" y="39.75" width="3.55" height="84.25"/>
+<rect x="274.35" y="26.17" width="3.55" height="97.83"/>
+<rect x="280.70" y="30.80" width="3.55" height="93.20"/>
+<rect x="287.05" y="27.78" width="3.55" height="96.22"/>
+<rect x="293.40" y="47.57" width="3.55" height="76.43"/>
+<rect x="299.74" y="54.64" width="3.55" height="69.36"/>
+<rect x="306.09" y="46.12" width="3.55" height="77.88"/>
+<rect x="312.44" y="42.37" width="3.55" height="81.63"/>
+<rect x="318.79" y="21.00" width="3.55" height="103.00"/>
+<rect x="325.14" y="20.03" width="3.55" height="103.97"/>
+<rect x="331.48" y="33.11" width="3.55" height="90.89"/>
+<rect x="337.83" y="37.14" width="3.55" height="86.86"/>
+<rect x="344.18" y="53.42" width="3.55" height="70.58"/>
+<rect x="350.53" y="46.46" width="3.55" height="77.54"/>
+<rect x="356.87" y="30.03" width="3.55" height="93.97"/>
+<rect x="363.22" y="26.31" width="3.55" height="97.69"/>
+<rect x="369.57" y="14.55" width="3.55" height="109.45"/>
+<rect x="375.92" y="26.01" width="3.55" height="97.99"/>
+<rect x="382.27" y="41.09" width="3.55" height="82.91"/>
+<rect x="388.61" y="42.76" width="3.55" height="81.24"/>
+<rect x="394.96" y="47.84" width="3.55" height="76.16"/>
+<rect x="401.31" y="27.49" width="3.55" height="96.51"/>
+<rect x="407.66" y="14.55" width="3.55" height="109.45"/>
+<rect x="414.01" y="17.82" width="3.55" height="106.18"/>
+<rect x="420.35" y="14.58" width="3.55" height="109.42"/>
+<rect x="426.70" y="37.98" width="3.55" height="86.02"/>
+<rect x="433.05" y="44.81" width="3.55" height="79.19"/>
+<rect x="439.40" y="36.22" width="3.55" height="87.78"/>
+<rect x="445.74" y="31.78" width="3.55" height="92.22"/>
+<rect x="452.09" y="14.55" width="3.55" height="109.45"/>
+<rect x="458.44" y="14.55" width="3.55" height="109.45"/>
+<rect x="464.79" y="20.81" width="3.55" height="103.19"/>
+<rect x="471.14" y="26.06" width="3.55" height="97.94"/>
+<rect x="477.48" y="44.88" width="3.55" height="79.12"/>
+<rect x="483.83" y="35.97" width="3.55" height="88.03"/>
+<rect x="490.18" y="18.90" width="3.55" height="105.10"/>
+<rect x="496.53" y="14.55" width="3.55" height="109.45"/>
+<rect x="502.87" y="14.55" width="3.55" height="109.45"/>
+<rect x="509.22" y="14.78" width="3.55" height="109.22"/>
+<rect x="515.57" y="30.23" width="3.55" height="93.77"/>
+<rect x="521.92" y="33.11" width="3.55" height="90.89"/>
+<rect x="528.27" y="38.86" width="3.55" height="85.14"/>
+<rect x="534.61" y="15.11" width="3.55" height="108.89"/>
+<rect x="540.96" y="14.55" width="3.55" height="109.45"/>
+<rect x="547.31" y="14.55" width="3.55" height="109.45"/>
+<rect x="553.66" y="14.55" width="3.55" height="109.45"/>
+<rect x="560.01" y="28.48" width="3.55" height="95.52"/>
+<rect x="566.35" y="34.82" width="3.55" height="89.18"/>
+<rect x="572.70" y="26.50" width="3.55" height="97.50"/>
+<rect x="579.05" y="21.11" width="3.55" height="102.89"/>
+</g>
+<polyline points="3.17,47.12 9.52,45.66 15.87,44.21 22.22,42.78 28.57,41.38 34.91,40.03 41.26,38.73 47.61,37.50 53.96,36.33 60.30,35.25 66.65,34.26 73,33.37 79.35,32.58 85.70,31.90 92.04,31.33 98.39,30.88 104.74,30.55 111.09,30.35 117.43,30.26 123.78,30.30 130.13,30.46 136.48,30.74 142.83,31.13 149.17,31.64 155.52,32.25 161.87,32.97 168.22,33.78 174.57,34.67 180.91,35.64 187.26,36.68 193.61,37.78 199.96,38.93 206.30,40.12 212.65,41.34 219.00,42.57 225.35,43.81 231.70,45.05 238.04,46.27 244.39,47.46 250.74,48.62 257.09,49.72 263.43,50.77 269.78,51.75 276.13,52.65 282.48,53.47 288.83,54.20 295.17,54.82 301.52,55.34 307.87,55.75 314.22,56.04 320.57,56.21 326.91,56.27 333.26,56.20 339.61,56.00 345.96,55.69 352.30,55.25 358.65,54.70 365,54.03 371.35,53.25 377.70,52.37 384.04,51.39 390.39,50.32 396.74,49.17 403.09,47.94 409.43,46.65 415.78,45.30 422.13,43.91 428.48,42.49 434.83,41.04 441.17,39.58 447.52,38.11 453.87,36.66 460.22,35.23 466.57,33.83 472.91,32.47 479.26,31.16 485.61,29.92 491.96,28.75 498.30,27.66 504.65,26.66 511,25.76 517.35,24.95 523.70,24.26 530.04,23.68 536.39,23.22 542.74,22.87 549.09,22.65 555.43,22.55 561.78,22.58 568.13,22.72 574.48,17.45 580.83,23.37" fill="none" stroke="#e06c00" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="574.48" y="7.45" text-anchor="middle" font-size="11" font-weight="600" fill="#e06c00">859,241</text>
+<g font-size="11" fill="#8f8f8f">
+<line x1="0" y1="124" x2="584" y2="124" stroke="#ebebeb" shape-rendering="crispEdges"/>
+<text x="3.17" y="144" text-anchor="middle">May 2</text>
+<text x="79.35" y="144" text-anchor="middle">May 14</text>
+<text x="155.52" y="144" text-anchor="middle">May 26</text>
+<text x="231.70" y="144" text-anchor="middle">Jun 7</text>
+<text x="307.87" y="144" text-anchor="middle">Jun 19</text>
+<text x="384.04" y="144" text-anchor="middle">Jul 1</text>
+<text x="460.22" y="144" text-anchor="middle">Jul 13</text>
+<text x="536.39" y="144" text-anchor="middle">Jul 25</text>
+<text x="584" y="162" text-anchor="end" font-size="10" opacity="0.7">2026-04-26 → 2026-07-26 (92 days)  ·  generated 2026-07-27 10:00 JST</text>
+</g>
+<g fill="transparent" pointer-events="all">
+<rect x="0" y="0" width="6.35" height="124"><title>day 1&#xA;$182.05  ·  620000 PV</title></rect>
+<rect x="6.35" y="0" width="6.35" height="124"><title>day 2&#xA;$218.03  ·  631794 PV</title></rect>
+<rect x="12.70" y="0" width="6.35" height="124"><title>day 3&#xA;$204.82  ·  643498 PV</title></rect>
+<rect x="19.04" y="0" width="6.35" height="124"><title>day 4&#xA;$211.16  ·  655023 PV</title></rect>
+<rect x="25.39" y="0" width="6.35" height="124"><title>day 5&#xA;$172.05  ·  666281 PV</title></rect>
+<rect x="31.74" y="0" width="6.35" height="124"><title>day 6&#xA;$151.80  ·  677186 PV</title></rect>
+<rect x="38.09" y="0" width="6.35" height="124"><title>day 7&#xA;$174.42  ·  687657 PV</title></rect>
+<rect x="44.43" y="0" width="6.35" height="124"><title>day 8&#xA;$183.20  ·  697613 PV</title></rect>
+<rect x="50.78" y="0" width="6.35" height="124"><title>day 9&#xA;$227.19  ·  706980 PV</title></rect>
+<rect x="57.13" y="0" width="6.35" height="124"><title>day 10&#xA;$236.61  ·  715689 PV</title></rect>
+<rect x="63.48" y="0" width="6.35" height="124"><title>day 11&#xA;$202.29  ·  723673 PV</title></rect>
+<rect x="69.83" y="0" width="6.35" height="124"><title>day 12&#xA;$194.99  ·  730877 PV</title></rect>
+<rect x="76.17" y="0" width="6.35" height="124"><title>day 13&#xA;$161.29  ·  737246 PV</title></rect>
+<rect x="82.52" y="0" width="6.35" height="124"><title>day 14&#xA;$172.46  ·  742736 PV</title></rect>
+<rect x="88.87" y="0" width="6.35" height="124"><title>day 15&#xA;$215.03  ·  747309 PV</title></rect>
+<rect x="95.22" y="0" width="6.35" height="124"><title>day 16&#xA;$221.65  ·  750934 PV</title></rect>
+<rect x="101.57" y="0" width="6.35" height="124"><title>day 17&#xA;$254.25  ·  753590 PV</title></rect>
+<rect x="107.91" y="0" width="6.35" height="124"><title>day 18&#xA;$226.83  ·  755261 PV</title></rect>
+<rect x="114.26" y="0" width="6.35" height="124"><title>day 19&#xA;$186.74  ·  755942 PV</title></rect>
+<rect x="120.61" y="0" width="6.35" height="124"><title>day 20&#xA;$186.28  ·  755634 PV</title></rect>
+<rect x="126.96" y="0" width="6.35" height="124"><title>day 21&#xA;$176.06  ·  754347 PV</title></rect>
+<rect x="133.30" y="0" width="6.35" height="124"><title>day 22&#xA;$218.15  ·  752099 PV</title></rect>
+<rect x="139.65" y="0" width="6.35" height="124"><title>day 23&#xA;$257.27  ·  748916 PV</title></rect>
+<rect x="146" y="0" width="6.35" height="124"><title>day 24&#xA;$243.13  ·  744832 PV</title></rect>
+<rect x="152.35" y="0" width="6.35" height="124"><title>day 25&#xA;$251.04  ·  739887 PV</title></rect>
+<rect x="158.70" y="0" width="6.35" height="124"><title>day 26&#xA;$201.81  ·  734132 PV</title></rect>
+<rect x="165.04" y="0" width="6.35" height="124"><title>day 27&#xA;$180.53  ·  727619 PV</title></rect>
+<rect x="171.39" y="0" width="6.35" height="124"><title>day 28&#xA;$205.16  ·  720411 PV</title></rect>
+<rect x="177.74" y="0" width="6.35" height="124"><title>day 29&#xA;$215.01  ·  712574 PV</title></rect>
+<rect x="184.09" y="0" width="6.35" height="124"><title>day 30&#xA;$269.13  ·  704181 PV</title></rect>
+<rect x="190.43" y="0" width="6.35" height="124"><title>day 31&#xA;$275.87  ·  695308 PV</title></rect>
+<rect x="196.78" y="0" width="6.35" height="124"><title>day 32&#xA;$238.31  ·  686036 PV</title></rect>
+<rect x="203.13" y="0" width="6.35" height="124"><title>day 33&#xA;$228.90  ·  676450 PV</title></rect>
+<rect x="209.48" y="0" width="6.35" height="124"><title>day 34&#xA;$187.49  ·  666634 PV</title></rect>
+<rect x="215.83" y="0" width="6.35" height="124"><title>day 35&#xA;$203.24  ·  656679 PV</title></rect>
+<rect x="222.17" y="0" width="6.35" height="124"><title>day 36&#xA;$249.88  ·  646674 PV</title></rect>
+<rect x="228.52" y="0" width="6.35" height="124"><title>day 37&#xA;$258.39  ·  636709 PV</title></rect>
+<rect x="234.87" y="0" width="6.35" height="124"><title>day 38&#xA;$297.86  ·  626873 PV</title></rect>
+<rect x="241.22" y="0" width="6.35" height="124"><title>day 39&#xA;$261.87  ·  617256 PV</title></rect>
+<rect x="247.57" y="0" width="6.35" height="124"><title>day 40&#xA;$218.46  ·  607943 PV</title></rect>
+<rect x="253.91" y="0" width="6.35" height="124"><title>day 41&#xA;$216.13  ·  599020 PV</title></rect>
+<rect x="260.26" y="0" width="6.35" height="124"><title>day 42&#xA;$203.22  ·  590568 PV</title></rect>
+<rect x="266.61" y="0" width="6.35" height="124"><title>day 43&#xA;$254.77  ·  582664 PV</title></rect>
+<rect x="272.96" y="0" width="6.35" height="124"><title>day 44&#xA;$295.85  ·  575380 PV</title></rect>
+<rect x="279.30" y="0" width="6.35" height="124"><title>day 45&#xA;$281.85  ·  568784 PV</title></rect>
+<rect x="285.65" y="0" width="6.35" height="124"><title>day 46&#xA;$291.00  ·  562938 PV</title></rect>
+<rect x="292" y="0" width="6.35" height="124"><title>day 47&#xA;$231.15  ·  557898 PV</title></rect>
+<rect x="298.35" y="0" width="6.35" height="124"><title>day 48&#xA;$209.76  ·  553713 PV</title></rect>
+<rect x="304.70" y="0" width="6.35" height="124"><title>day 49&#xA;$235.53  ·  550424 PV</title></rect>
+<rect x="311.04" y="0" width="6.35" height="124"><title>day 50&#xA;$246.87  ·  548067 PV</title></rect>
+<rect x="317.39" y="0" width="6.35" height="124"><title>day 51&#xA;$311.49  ·  546668 PV</title></rect>
+<rect x="323.74" y="0" width="6.35" height="124"><title>day 52&#xA;$314.44  ·  546247 PV</title></rect>
+<rect x="330.09" y="0" width="6.35" height="124"><title>day 53&#xA;$274.87  ·  546813 PV</title></rect>
+<rect x="336.43" y="0" width="6.35" height="124"><title>day 54&#xA;$262.67  ·  548371 PV</title></rect>
+<rect x="342.78" y="0" width="6.35" height="124"><title>day 55&#xA;$213.45  ·  550914 PV</title></rect>
+<rect x="349.13" y="0" width="6.35" height="124"><title>day 56&#xA;$234.50  ·  554429 PV</title></rect>
+<rect x="355.48" y="0" width="6.35" height="124"><title>day 57&#xA;$284.17  ·  558894 PV</title></rect>
+<rect x="361.83" y="0" width="6.35" height="124"><title>day 58&#xA;$295.43  ·  564281 PV</title></rect>
+<rect x="368.17" y="0" width="6.35" height="124"><title>day 59&#xA;$331.00  ·  570551 PV</title></rect>
+<rect x="374.52" y="0" width="6.35" height="124"><title>day 60&#xA;$296.34  ·  577661 PV</title></rect>
+<rect x="380.87" y="0" width="6.35" height="124"><title>day 61&#xA;$250.73  ·  585558 PV</title></rect>
+<rect x="387.22" y="0" width="6.35" height="124"><title>day 62&#xA;$245.69  ·  594187 PV</title></rect>
+<rect x="393.57" y="0" width="6.35" height="124"><title>day 63&#xA;$230.33  ·  603482 PV</title></rect>
+<rect x="399.91" y="0" width="6.35" height="124"><title>day 64&#xA;$291.85  ·  613374 PV</title></rect>
+<rect x="406.26" y="0" width="6.35" height="124"><title>day 65&#xA;$331.00  ·  623789 PV</title></rect>
+<rect x="412.61" y="0" width="6.35" height="124"><title>day 66&#xA;$321.10  ·  634648 PV</title></rect>
+<rect x="418.96" y="0" width="6.35" height="124"><title>day 67&#xA;$330.90  ·  645870 PV</title></rect>
+<rect x="425.30" y="0" width="6.35" height="124"><title>day 68&#xA;$260.14  ·  657369 PV</title></rect>
+<rect x="431.65" y="0" width="6.35" height="124"><title>day 69&#xA;$239.49  ·  669057 PV</title></rect>
+<rect x="438" y="0" width="6.35" height="124"><title>day 70&#xA;$265.46  ·  680845 PV</title></rect>
+<rect x="444.35" y="0" width="6.35" height="124"><title>day 71&#xA;$278.88  ·  692644 PV</title></rect>
+<rect x="450.70" y="0" width="6.35" height="124"><title>day 72&#xA;$331.00  ·  704363 PV</title></rect>
+<rect x="457.04" y="0" width="6.35" height="124"><title>day 73&#xA;$331.00  ·  715913 PV</title></rect>
+<rect x="463.39" y="0" width="6.35" height="124"><title>day 74&#xA;$312.05  ·  727206 PV</title></rect>
+<rect x="469.74" y="0" width="6.35" height="124"><title>day 75&#xA;$296.19  ·  738156 PV</title></rect>
+<rect x="476.09" y="0" width="6.35" height="124"><title>day 76&#xA;$239.26  ·  748681 PV</title></rect>
+<rect x="482.43" y="0" width="6.35" height="124"><title>day 77&#xA;$266.22  ·  758700 PV</title></rect>
+<rect x="488.78" y="0" width="6.35" height="124"><title>day 78&#xA;$317.85  ·  768138 PV</title></rect>
+<rect x="495.13" y="0" width="6.35" height="124"><title>day 79&#xA;$331.00  ·  776926 PV</title></rect>
+<rect x="501.48" y="0" width="6.35" height="124"><title>day 80&#xA;$331.00  ·  784997 PV</title></rect>
+<rect x="507.83" y="0" width="6.35" height="124"><title>day 81&#xA;$330.31  ·  792293 PV</title></rect>
+<rect x="514.17" y="0" width="6.35" height="124"><title>day 82&#xA;$283.58  ·  798760 PV</title></rect>
+<rect x="520.52" y="0" width="6.35" height="124"><title>day 83&#xA;$274.87  ·  804354 PV</title></rect>
+<rect x="526.87" y="0" width="6.35" height="124"><title>day 84&#xA;$257.48  ·  809034 PV</title></rect>
+<rect x="533.22" y="0" width="6.35" height="124"><title>day 85&#xA;$329.32  ·  812770 PV</title></rect>
+<rect x="539.57" y="0" width="6.35" height="124"><title>day 86&#xA;$331.00  ·  815538 PV</title></rect>
+<rect x="545.91" y="0" width="6.35" height="124"><title>day 87&#xA;$331.00  ·  817323 PV</title></rect>
+<rect x="552.26" y="0" width="6.35" height="124"><title>day 88&#xA;$331.00  ·  818118 PV</title></rect>
+<rect x="558.61" y="0" width="6.35" height="124"><title>day 89&#xA;$288.86  ·  817923 PV</title></rect>
+<rect x="564.96" y="0" width="6.35" height="124"><title>day 90&#xA;$269.70  ·  816748 PV</title></rect>
+<rect x="571.30" y="0" width="6.35" height="124"><title>day 91&#xA;$294.87  ·  859241 PV</title></rect>
+<rect x="577.65" y="0" width="6.35" height="124"><title>day 92&#xA;$311.17  ·  811532 PV</title></rect>
+</g></g></svg>

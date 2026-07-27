@@ -2,11 +2,14 @@ package ui
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"time"
 )
 
-func PrintLogo(version string) {
+// FprintLogo はロゴの出力先を選べる PrintLogo。
+// SVG を標準出力に流すときに stderr へ逃がすために使う。
+func FprintLogo(w io.Writer, version string) {
 	const logo = `
  ██████╗ ██╗   ██╗ ██╗   ██╗   ██████╗
  ██╔══██╗██║   ██║ ██║   ██║  ██╔════╝

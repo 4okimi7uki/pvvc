@@ -192,7 +192,22 @@ pvvc analyze --notify --quiet
 | `--top-pages` | -     | `20`     | GA4 アクセスランキングの表示件数                  |
 | `--quiet`     | `-q`  | `false`  | ターミナルへの結果出力を抑制                      |
 | `--notify`    | -     | `false`  | 分析/集計結果をSlackに通知                        |
+| `--svg`       | -     | -        | コスト×PVのグラフをSVGで出力（下記参照）          |
 | `--llm`       | -     | `gemini` | 使用するLLM (`gemini` / `claude`) (`analyze`のみ) |
+
+### `--svg`
+
+日次コスト（棒）と PV（折れ線）を重ねた二軸グラフを SVG で書き出します。値は省略可能です。
+
+```bash
+pvvc report --svg                    # ./pvvc_svg/pvvc-20260501_20260726.svg に出力
+pvvc report --svg=docs/cost.svg      # パス指定（pvvc_svg/ は使わず、ディレクトリは自動で作成）
+pvvc report --svg=- > chart.svg      # 標準出力に流す
+```
+
+値をスペース区切りでは渡せません（`--svg out.svg` ではなく `--svg=out.svg`）。
+`--svg=-` のときはターミナル向けの出力が標準エラー出力に切り替わるので、そのままパイプできます。
+グラフは1〜3ヶ月ほどの期間で見るのが読みやすいので、`--from` の指定と併用してください。
 
 ---
 
