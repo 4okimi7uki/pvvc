@@ -179,7 +179,7 @@ func writeLine(b *strings.Builder, opt Options, s Scale) {
 			}
 		}
 		fmt.Fprintf(b,
-			"\n<text x=\"%s\" y=\"%s\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"600\" fill=\"%s\">%s</text>",
+			"\n<text x=\"%s\" y=\"%s\" text-anchor=\"middle\" font-size=\"11\" font-weight=\"600\" fill=\"%s\" stroke=\"white\" stroke-width=\"2\" paint-order=\"stroke fill\">%s</text>",
 			num(top.x), num(top.y-10), opt.Line.Color, esc(Comma(top.v)),
 		)
 	}

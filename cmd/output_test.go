@@ -38,6 +38,91 @@ func TestResolveSVGPath(t *testing.T) {
 	}
 }
 
+func TestResolveHTMLPath(t *testing.T) {
+	var (
+		from = time.Date(2026, 5, 1, 0, 0, 0, 0, time.UTC)
+		to   = time.Date(2026, 7, 26, 0, 0, 0, 0, time.UTC)
+	)
+
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"--html だけ", svgPathAuto, "pvvc_html/pvvc-20260501_20260726.html"},
+		{"パス指定", "docs/chart.html", "docs/chart.html"},
+		{"標準出力", "-", "-"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := resolveHTMLPath(tt.in, from, to); got != tt.want {
+				t.Errorf("resolveHTMLPath(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWriteChartPageSkippedWhenFlagUnset(t *testing.T) {
+	defer func(p string) { rootOpts.htmlPath = p }(rootOpts.htmlPath)
+	rootOpts.htmlPath = ""
+
+	if err := writeChartPage(nil); err != nil {
+		t.Errorf("writeChartPage() = %v, want nil", err)
+	}
+}
+
+func TestWriteChartPageErrorsOnEmptyData(t *testing.T) {
+	defer func(p string) { rootOpts.htmlPath = p }(rootOpts.htmlPath)
+	rootOpts.htmlPath = svgPathAuto
+
+	if err := writeChartPage(nil); err == nil {
+		t.Error("データが無いときはエラーを期待したが nil")
+	}
+}
+
+// SVG を外部参照せず、HTML 1枚に閉じて書けていること。
+func TestWriteChartPageInlinesSVG(t *testing.T) {
+	defer func(p string) { rootOpts.htmlPath = p }(rootOpts.htmlPath)
+
+	path := filepath.Join(t.TempDir(), "out", "chart.html")
+	rootOpts.htmlPath = path
+
+	if err := writeChartPage(sampleReports(7)); err != nil {
+		t.Fatalf("writeChartPage() = %v", err)
+	}
+
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("出力ファイルが読めない: %v", err)
+	}
+	if !bytes.HasPrefix(b, []byte("<!doctype html>")) {
+		t.Errorf("HTML になっていない: %.40s", b)
+	}
+	if !bytes.Contains(b, []byte("<svg")) || !bytes.Contains(b, []byte("<polyline")) {
+		t.Error("チャートが埋め込まれていない")
+	}
+}
+
+// --html=- でも装飾的な出力が標準出力を汚さないこと。
+func TestChromeOutGoesToStderrWhenHTMLOnStdout(t *testing.T) {
+	defer func(s, h string) { rootOpts.svgPath, rootOpts.htmlPath = s, h }(rootOpts.svgPath, rootOpts.htmlPath)
+
+	rootOpts.svgPath = ""
+	rootOpts.htmlPath = svgPathStdout
+	if got := chromeOut(); got != os.Stderr {
+		t.Errorf("chromeOut() = %v, want os.Stderr", got)
+	}
+	if printResult() {
+		t.Error("printResult() = true, want false")
+	}
+
+	rootOpts.htmlPath = "out.html"
+	if got := chromeOut(); got != os.Stdout {
+		t.Errorf("chromeOut() = %v, want os.Stdout", got)
+	}
+}
+
 // --svg=- のときだけ、レポート本文とロゴが stdout を避けること。
 func TestSVGToStdoutSuppressesTerminalOutput(t *testing.T) {
 	tests := []struct {
