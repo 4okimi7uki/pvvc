@@ -25,6 +25,7 @@ type rootFlags struct {
 	to            time.Time
 	notify        bool
 	topPagesLimit int64
+	svgPath       string
 }
 
 var rootOpts rootFlags
@@ -69,7 +70,7 @@ func runWith(fn func(ctx context.Context) error) error {
 
 	resolvedVersion := gh.ResolvedVersion()
 	ctx := context.Background()
-	ui.PrintLogo(resolvedVersion)
+	ui.FprintLogo(chromeOut(), resolvedVersion)
 
 	configWarnings := config.Warnings(cfg)
 	if len(configWarnings) > 0 {
@@ -85,7 +86,7 @@ func runWith(fn func(ctx context.Context) error) error {
 	}
 
 	elapsed := time.Since(executeTime)
-	fmt.Printf("\n───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
+	_, _ = fmt.Fprintf(chromeOut(), "\n───\nDone in %.1fs 🕊️\n\n", elapsed.Seconds())
 
 	return nil
 }
@@ -96,6 +97,8 @@ func addCommonFlags(cmd *cobra.Command) {
 	_ = cmd.PersistentFlags().MarkHidden("raw")
 	cmd.PersistentFlags().BoolVar(&rootOpts.notify, "notify", false, "notify Slack with report")
 	cmd.PersistentFlags().Int64Var(&rootOpts.topPagesLimit, "top-pages", 20, "access top pages limit")
+	cmd.PersistentFlags().StringVar(&rootOpts.svgPath, "svg", "", "write the chart as SVG to this path (default: pvvc-<from>_<to>.svg)")
+	cmd.PersistentFlags().Lookup("svg").NoOptDefVal = "auto"
 
 	// Default: 1 week. Use local calendar date stored as UTC midnight to match
 	// bare-date parsing (time.Parse("2006-01-02", ...) always returns UTC midnight).

@@ -75,10 +75,5 @@ func (c *Client) Send(ctx context.Context, aiBody string, end time.Time, report 
 		return fmt.Errorf("slack: request failed %w", err)
 	}
 
-	rep.PrintSection("Notification")
-	fmt.Println()
-	fmt.Println(" Sent the analysis result to Slack 🔔")
-	fmt.Println()
-
 	return nil
 }
