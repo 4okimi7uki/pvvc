@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"cloud.google.com/go/auth/credentials"
@@ -69,16 +70,18 @@ func RunMain(v *viper.Viper, ctx context.Context, start, end time.Time, raw bool
 	return reports, topPages, nil
 }
 
+// printRawResponses は --raw のデバッグ用ダンプ。
+// 標準出力は --svg=- で SVG 本体が流れる経路なので、こちらは stderr に出す。
 func printRawResponses(ga4Client *ga4.Client, vercelClient *vercel.Client) {
 	for i, page := range ga4Client.RawPages {
 		var buf bytes.Buffer
 		if err := json.Indent(&buf, page, "", "  "); err == nil {
-			fmt.Printf("\n=== GA4 Raw Response (page %d) ===\n%s\n", i+1, buf.String())
+			fmt.Fprintf(os.Stderr, "\n=== GA4 Raw Response (page %d) ===\n%s\n", i+1, buf.String())
 		}
 	}
 	if len(vercelClient.RawBody) > 0 {
 		// Vercelのレスポンスは複数JSONオブジェクトのストリームのため json.Indent は使えない
-		fmt.Printf("\n=== Vercel Raw Response ===\n%s\n", vercelClient.RawBody)
+		fmt.Fprintf(os.Stderr, "\n=== Vercel Raw Response ===\n%s\n", vercelClient.RawBody)
 	}
 }
 

@@ -11,7 +11,6 @@ import (
 	"github.com/4okimi7uki/pvvc/internal/ai/gemini"
 	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/report"
-	"github.com/4okimi7uki/pvvc/internal/slack"
 )
 
 type analyzeFlags struct {
@@ -60,20 +59,20 @@ var analyzeCmd = &cobra.Command{
 				return err
 			}
 
-			if !quiet {
+			if printResult() {
 				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, analysisResult, analyzeOpts.llm, topPages, rootOpts.topPagesLimit)
 			}
 
-			if rootOpts.notify {
-				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"), serviceName, cfg.GetString("vercel.project_url"), cfg.GetString("service.url"))
-				if err != nil {
-					return err
-				}
-				err = slackClient.Send(ctx, analysisResult, rootOpts.to, rep, analyzeOpts.llm, topPages, rootOpts.topPagesLimit)
+			if err := notifySlack(ctx, rep, topPages, analysisResult, analyzeOpts.llm); err != nil {
+				return err
+			}
 
-				if err != nil {
-					return err
-				}
+			if err := writeChart(rep); err != nil {
+				return err
+			}
+
+			if err := writeChartPage(rep); err != nil {
+				return err
 			}
 
 			return nil

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
+	"golang.org/x/sync/errgroup"
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
 )
 
@@ -107,11 +109,93 @@ func buildRunReportRequest(startDate, endDate string, offset int64) *analyticsda
 	}
 }
 
+const (
+	dateLayout = "2006-01-02"
+
+	// chunkDays は日次PVを取りに行くときの 1 リクエストあたりの日数。
+	//
+	// 期間を広げるほど日次PVが実態より小さく出る。日次クエリは
+	// date × sessionSourceMedium で行を持つので、期間が長いと組み合わせ数が
+	// GA4 のカーディナリティ上限を超え、あふれた分が (other) 行に丸められる。
+	// (other) 行は date の値まで (other) になるため、TotalPageViewByDay で
+	// どの日にも紐づかず落ちる。実測で 87 日レンジは 26 日レンジの約 1/3 まで
+	// PV が落ちた。期間を短く割って足し合わせることで組み合わせ数を抑える。
+	chunkDays = 7
+
+	// chunkConcurrency は分割したリクエストの同時実行数。GA4 の同時実行クォータに
+	// 余裕を持たせる。上げすぎると 429 が返る。
+	chunkConcurrency = 4
+)
+
+// dateChunks は [startDate, endDate] を先頭から最大 days 日ずつの区間に割る。
+// 返す区間の端は両方とも含む（GA4 の DateRange と同じ閉区間）。
+func dateChunks(startDate, endDate string, days int) ([][2]string, error) {
+	start, err := time.Parse(dateLayout, startDate)
+	if err != nil {
+		return nil, fmt.Errorf("ga4: invalid start date %q: %w", startDate, err)
+	}
+	end, err := time.Parse(dateLayout, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("ga4: invalid end date %q: %w", endDate, err)
+	}
+	if end.Before(start) {
+		return nil, fmt.Errorf("ga4: end date %s is before start date %s", endDate, startDate)
+	}
+	if days < 1 {
+		days = 1
+	}
+
+	var out [][2]string
+	for cur := start; !cur.After(end); cur = cur.AddDate(0, 0, days) {
+		last := cur.AddDate(0, 0, days-1)
+		if last.After(end) {
+			last = end
+		}
+		out = append(out, [2]string{cur.Format(dateLayout), last.Format(dateLayout)})
+	}
+	return out, nil
+}
+
+// FetchDailyPageViews は期間を chunkDays 日ずつに割って取得し、日付順に連結する。
+// 1 回のリクエストで全期間を取ると PV が過少に出るため（chunkDays のコメント参照）。
 func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate string) (*Report, error) {
+	chunks, err := dateChunks(startDate, endDate, chunkDays)
+	if err != nil {
+		return nil, err
+	}
+
+	// 連結順を入力の期間順に保つため、結果はチャンクごとのスロットに書く。
+	perChunk := make([][]DailyPageViews, len(chunks))
+
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(chunkConcurrency)
+	for i, ch := range chunks {
+		eg.Go(func() error {
+			rows, err := c.fetchDailyRange(ctx, ch[0], ch[1])
+			if err != nil {
+				return err
+			}
+			perChunk[i] = rows
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
 	report := &Report{
 		PropertyID: c.propertyID,
 		Rows:       make([]DailyPageViews, 0),
 	}
+	for _, rows := range perChunk {
+		report.Rows = append(report.Rows, rows...)
+	}
+	return report, nil
+}
+
+// fetchDailyRange は 1 区間ぶんの日次PVを、行数上限ぶんページングしながら取る。
+func (c *Client) fetchDailyRange(ctx context.Context, startDate, endDate string) ([]DailyPageViews, error) {
+	rows := make([]DailyPageViews, 0)
 
 	var offset int64
 	for {
@@ -119,12 +203,12 @@ func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate str
 
 		resp, err := c.svc.Properties.RunReport(c.propertyID, req).Context(ctx).Do()
 		if err != nil {
-			return nil, fmt.Errorf("ga4: RunReport failed (offset=%d): %w", offset, err)
+			return nil, fmt.Errorf("ga4: RunReport failed (%s..%s, offset=%d): %w", startDate, endDate, offset, err)
 		}
 
 		if c.Raw {
 			if b, e := json.Marshal(resp); e == nil {
-				c.RawPages = append(c.RawPages, b)
+				c.appendRaw(b)
 			}
 		}
 
@@ -136,7 +220,7 @@ func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate str
 		if err != nil {
 			return nil, err
 		}
-		report.Rows = append(report.Rows, page.Rows...)
+		rows = append(rows, page.Rows...)
 
 		offset += int64(len(resp.Rows))
 		if offset >= resp.RowCount {
@@ -144,7 +228,7 @@ func (c *Client) FetchDailyPageViews(ctx context.Context, startDate, endDate str
 		}
 	}
 
-	return report, nil
+	return rows, nil
 }
 
 func buildTopPagesRequest(startDate, endDate string, offset int64, limit int64) *analyticsdata.RunReportRequest {
@@ -209,7 +293,7 @@ func (c *Client) FetchTopPagePaths(ctx context.Context, startDate, endDate strin
 
 		if c.Raw {
 			if b, e := json.Marshal(resp); e == nil {
-				c.RawPages = append(c.RawPages, b)
+				c.appendRaw(b)
 			}
 		}
 

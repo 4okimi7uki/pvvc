@@ -7,7 +7,6 @@ import (
 
 	"github.com/4okimi7uki/pvvc/internal/app"
 	"github.com/4okimi7uki/pvvc/internal/report"
-	"github.com/4okimi7uki/pvvc/internal/slack"
 )
 
 var reportCmd = &cobra.Command{
@@ -22,24 +21,19 @@ var reportCmd = &cobra.Command{
 				return err
 			}
 
-			if !quiet {
+			if printResult() {
 				report.PrintSomeDayReports(rootOpts.from, rootOpts.to, rep, "", "", topPages, rootOpts.topPagesLimit)
 			}
 
-			serviceName := cfg.GetString("service.name")
-			if rootOpts.notify {
-				slackClient, err := slack.New(cfg.GetString("slack.webhook_url"), serviceName, cfg.GetString("vercel.project_url"), cfg.GetString("service.url"))
-				if err != nil {
-					return err
-				}
-				analysisResult := ""
-				llm := ""
-
-				err = slackClient.Send(ctx, analysisResult, rootOpts.to, rep, llm, topPages, rootOpts.topPagesLimit)
-
-				if err != nil {
-					return err
-				}
+			// report コマンドは AI 分析を伴わないので aiBody / llm は空。
+			if err := notifySlack(ctx, rep, topPages, "", ""); err != nil {
+				return err
+			}
+			if err := writeChart(rep); err != nil {
+				return err
+			}
+			if err := writeChartPage(rep); err != nil {
+				return err
 			}
 
 			return nil
