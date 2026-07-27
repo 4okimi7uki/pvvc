@@ -16,7 +16,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	golang.org/x/sync v0.21.0
 	google.golang.org/api v0.287.1
-	google.golang.org/genai v1.60.0
+	google.golang.org/genai v1.65.0
 )
 
 require (
