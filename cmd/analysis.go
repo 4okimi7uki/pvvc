@@ -71,6 +71,10 @@ var analyzeCmd = &cobra.Command{
 				return err
 			}
 
+			if err := writeChartPage(rep); err != nil {
+				return err
+			}
+
 			return nil
 		})
 	},

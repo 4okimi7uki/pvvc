@@ -3,6 +3,7 @@ package ga4
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"cloud.google.com/go/auth"
 	analyticsdata "google.golang.org/api/analyticsdata/v1beta"
@@ -13,7 +14,18 @@ type Client struct {
 	svc        *analyticsdata.Service
 	propertyID string
 	Raw        bool
-	RawPages   [][]byte
+
+	// RawPages は --raw 用の生レスポンス。日次PVは期間を分割して並行に取りに行くので
+	// 追記は rawMu で守る。読むのは全フェッチが終わったあとの前提。
+	rawMu    sync.Mutex
+	RawPages [][]byte
+}
+
+// appendRaw は c.Raw のときだけ生レスポンスを控える。
+func (c *Client) appendRaw(b []byte) {
+	c.rawMu.Lock()
+	c.RawPages = append(c.RawPages, b)
+	c.rawMu.Unlock()
 }
 
 func New(ctx context.Context, propertyID string, credential *auth.Credentials) (*Client, error) {

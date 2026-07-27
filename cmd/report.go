@@ -32,6 +32,9 @@ var reportCmd = &cobra.Command{
 			if err := writeChart(rep); err != nil {
 				return err
 			}
+			if err := writeChartPage(rep); err != nil {
+				return err
+			}
 
 			return nil
 		})

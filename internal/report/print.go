@@ -72,7 +72,16 @@ func FprintSVGBuilt(w io.Writer, path string) {
 	FprintSection(w, "SVG")
 	_, _ = fmt.Fprintln(w)
 	_, _ = fmt.Fprintln(w, " Built the traffic-and-cost chart 📊")
-	_, _ = fmt.Fprintf(w, " %s %s\n", "::out::", path)
+	_, _ = fmt.Fprintf(w, " %s %s\n", "::file::", path)
+	_, _ = fmt.Fprintln(w)
+}
+
+// FprintHTMLBuilt はチャートを埋め込んだ HTML 書き出し完了のセクション。
+func FprintHTMLBuilt(w io.Writer, path string) {
+	FprintSection(w, "HTML")
+	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w, " Built the standalone chart page 🖼️")
+	_, _ = fmt.Fprintf(w, " %s %s\n", "::file::", path)
 	_, _ = fmt.Fprintln(w)
 }
 
