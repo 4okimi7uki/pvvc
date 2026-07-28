@@ -64,12 +64,13 @@ jobs:
         run: |
           to=$(date -d 'yesterday' '+%Y-%m-%d')
           from=$(date -d 'yesterday -1 month' '+%Y-%m-%d')
-          pvvc report --quiet --from "$from" --to "$to" --html=web/index.html
+          echo "to=$to" "from=$from"
+          pvvc report --quiet --from "$from" --html=web/index.html
 
       - name: Commit and Push updated web/index.html
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
