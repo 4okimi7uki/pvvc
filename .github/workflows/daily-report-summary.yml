@@ -58,6 +58,12 @@ jobs:
       - name: Aggregate and notify Slack
         run: pvvc report --notify --quiet --top-pages 15
 
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          fetch-depth: 1
+
       - name: Build monthly chart page
         env:
           TZ: Asia/Tokyo
