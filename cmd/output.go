@@ -126,13 +126,13 @@ func writeChartPage(reports []report.DailyReport) error {
 		return fmt.Errorf("html: no data to plot")
 	}
 
-	var (
-		path = resolveHTMLPath(rootOpts.htmlPath, rootOpts.from, rootOpts.to)
-		opt  = report.ChartOptions(reports, time.Now())
-	)
+	path := resolveHTMLPath(rootOpts.htmlPath, rootOpts.from, rootOpts.to)
 
 	if err := writeOut("html", path, func(w io.Writer) error {
-		return chart.RenderPage(w, opt, chart.PageOptions{Title: pageTitle()})
+		return chart.RenderPage(w, report.PageData(reports), chart.PageOptions{
+			Title:  pageTitle(),
+			Origin: cfg.GetString("service.url"),
+		})
 	}); err != nil {
 		return err
 	}

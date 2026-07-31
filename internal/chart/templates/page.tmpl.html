@@ -1,47 +1,189 @@
 <!doctype html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{{ .Title }}</title>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                text-decoration: none;
-                list-style: none;
-            }
-            body {
-                background: #fafafa;
-            }
-            .main {
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                padding: 10px 4%;
-            }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ .Title }}</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        text-decoration: none;
+        list-style: none;
+      }
+      #root {
+        height: 100svh;
+        scrollbar-width: thin;
+        scrollbar-color: #b1b1b1 #fafafa;
+      }
+      a:hover {
+        text-decoration: underline;
+        text-decoration-color: #333;
+      }
+      body {
+        background: #fafafa;
+        font-family:
+          Geist,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+        color: #333;
+      }
+      .pageHeader {
+        text-align: center;
+        padding: 20px 4% 4px;
+      }
+      .pageHeader__title {
+        font-size: 22px;
+        font-weight: 600;
+        color: #333;
+      }
+      .pageHeader__period {
+        margin-top: 4px;
+        font-size: 14px;
+        color: #888;
+      }
+      .main {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 10px 4%;
+      }
 
-            .chartWrapper {
-                background: #ffffff;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                padding: 10px;
-                display: flex;
-                justify-content: flex-start;
-                overflow-x: auto;
+      .chartWrapper {
+        background: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        display: flex;
+        justify-content: flex-start;
+        overflow-x: auto;
 
-                svg {
-                    height: 300px;
-                    width: auto;
-                    display: block;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <main class="main">
-            <div class="chartWrapper">{{ .Chart }}</div>
-        </main>
-    </body>
+        svg {
+          height: 300px;
+          width: auto;
+          display: block;
+        }
+      }
+
+      .pages {
+        padding: 10px 4%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+
+        > div {
+          max-width: 1369px;
+          width: 100%;
+          max-height: 55vh;
+          overflow: auto;
+        }
+      }
+      @media (width <= 768px) {
+        .pages > div {
+          max-height: calc(100% - 360px);
+          padding: 10px 4%;
+        }
+      }
+      .day {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        margin-bottom: 6px;
+        &:hover {
+          box-shadow: 1px 2px 3px #00000029;
+        }
+      }
+      .day.is-open {
+        border-color: #0072f5;
+      }
+      .day__head {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font: inherit;
+        font-size: 18px;
+        color: #444;
+      }
+      .day.is-open .day__head {
+        color: #0072f5;
+        font-weight: 600;
+      }
+      .day__meta {
+        color: #888;
+        font-size: 16px;
+        white-space: nowrap;
+        display: flex;
+        gap: 10px;
+      }
+      .day.is-open .day__meta {
+        color: #0072f5;
+      }
+      .day__list {
+        padding: 2px 14px 12px;
+      }
+      .day__list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 5px 0;
+        border-top: 1px dashed #f0f0f0;
+        font-size: 16px;
+      }
+      .day__list a {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+      }
+      .day__path {
+        overflow: hidden;
+        white-space: nowrap;
+        display: block;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 1;
+      }
+      .day__views {
+        color: #888;
+        white-space: nowrap;
+        margin-left: 10px;
+      }
+      .day__empty {
+        color: #999;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!--
+      チャートの元データ。SVG を直接埋め込むのをやめ、JS 側で描画できるよう
+      JSON をそのまま渡す。JSON は encoding/json のデフォルトエスケープ（<>&）を
+      通しているので、</script> でのブレイクアウトは起きない。
+      描画に必要な値（origin 含む）は全部この JSON に入れてあるので、
+      下の描画スクリプトは Go テンプレートの値に依存しない（= JS 単体で使い回せる）。
+    -->
+    <script id="__PVVC_DATA__" type="application/json">
+      {{ .Data }}
+    </script>
+
+    <!-- internal/chart/templates/pvvc-chart.js を go:embed でインライン展開したもの。 -->
+    <script type="module">
+      {{ .Script }}
+    </script>
+  </body>
 </html>
