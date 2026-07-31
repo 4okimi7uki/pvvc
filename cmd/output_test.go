@@ -81,8 +81,8 @@ func TestWriteChartPageErrorsOnEmptyData(t *testing.T) {
 	}
 }
 
-// SVG を外部参照せず、HTML 1枚に閉じて書けていること。
-func TestWriteChartPageInlinesSVG(t *testing.T) {
+// 元データが __PVVC_DATA__ に JSON で埋まった HTML を書けていること。
+func TestWriteChartPageEmbedsJSON(t *testing.T) {
 	defer func(p string) { rootOpts.htmlPath = p }(rootOpts.htmlPath)
 
 	path := filepath.Join(t.TempDir(), "out", "chart.html")
@@ -99,8 +99,11 @@ func TestWriteChartPageInlinesSVG(t *testing.T) {
 	if !bytes.HasPrefix(b, []byte("<!doctype html>")) {
 		t.Errorf("HTML になっていない: %.40s", b)
 	}
-	if !bytes.Contains(b, []byte("<svg")) || !bytes.Contains(b, []byte("<polyline")) {
-		t.Error("チャートが埋め込まれていない")
+	if !bytes.Contains(b, []byte(`<script id="__PVVC_DATA__" type="application/json">`)) {
+		t.Error("__PVVC_DATA__ の JSON が埋め込まれていない")
+	}
+	if !bytes.Contains(b, []byte(`"days":`)) || !bytes.Contains(b, []byte(`"range":`)) {
+		t.Error("JSON の中身が想定と違う")
 	}
 }
 

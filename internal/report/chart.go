@@ -13,6 +13,32 @@ import (
 // これを超える日数は等間隔で間引く。
 const maxXLabels = 8
 
+// PageData は日次レポートを HTML(__PVVC_DATA__)に埋める JSON へ変換する。
+// SVG を直接描かず、この JSON を JS 側で描画する。
+func PageData(reports []DailyReport) chart.PageData {
+	days := make([]chart.PageDay, len(reports))
+	for i, r := range reports {
+		tops := make([]chart.PageTopPath, len(r.TopPages))
+		for j, t := range r.TopPages {
+			tops[j] = chart.PageTopPath{Path: t.PagePath, Views: t.Views}
+		}
+		days[i] = chart.PageDay{
+			Date:     r.Date.Format("2006-01-02"),
+			Cost:     r.TotalCost.InexactFloat64(),
+			PV:       r.PV.InexactFloat64(),
+			TopPages: tops,
+		}
+	}
+
+	var rng chart.PageRange
+	if len(reports) > 0 {
+		rng.From = reports[0].Date.Format("2006-01-02")
+		rng.To = reports[len(reports)-1].Date.Format("2006-01-02")
+	}
+
+	return chart.PageData{Range: rng, Days: days}
+}
+
 // ChartOptions は日次レポートを chart パッケージが描ける形に変換する。
 // 棒グラフが日次コスト(USD)、折れ線が PV。
 // generatedAt は図の下に入れる生成時刻。呼び出し側から渡すのは、
