@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-const defaultPageTitle = "GA4 PV × Vercel Cost chart | PVVC"
+const defaultPageTitle = "GA4 PV × Vercel Cost"
 
 //go:embed "templates/page.tmpl.html"
 var pageTmplSrc string
@@ -89,11 +89,11 @@ type pageTmplData struct {
 // RenderPage は元データを __PVVC_DATA__ に JSON で埋めた単体 HTML を書き出す。
 // 描画は同梱の pvvc-chart.js が JSON を読んで行う。
 func RenderPage(w io.Writer, data PageData, page PageOptions) error {
+	data.Title = page.Title // サービス名のみ（空なら JS 側がデフォルト表示する）
+	data.Origin = page.Origin
 	if page.Title == "" {
 		page.Title = defaultPageTitle
 	}
-	data.Title = page.Title
-	data.Origin = page.Origin
 
 	raw, err := json.Marshal(data)
 	if err != nil {

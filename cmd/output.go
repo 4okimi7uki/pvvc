@@ -153,7 +153,7 @@ func writeChartPage(reports []report.DailyReport) error {
 // 空文字を返した場合は chart 側の既定値になる。
 func pageTitle() string {
 	if name := cfg.GetString("service.name"); name != "" {
-		return fmt.Sprintf("%s | PVVC chart", name)
+		return name
 	}
 	return ""
 }
