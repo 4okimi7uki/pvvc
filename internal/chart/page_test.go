@@ -2,6 +2,7 @@ package chart
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -94,5 +95,44 @@ func TestRenderPageTitle(t *testing.T) {
 				t.Errorf("%q が無い", want)
 			}
 		})
+	}
+}
+
+// ファビコンが data URI として埋まっていて、ブラウザが実体参照を戻したあと
+// 元の SVG に復元できること。html/template が data: を潰すと壊れるので見張る。
+func TestRenderPageEmbedsFavicon(t *testing.T) {
+	var buf bytes.Buffer
+	if err := RenderPage(&buf, fixturePageData(), PageOptions{}); err != nil {
+		t.Fatalf("RenderPage() = %v", err)
+	}
+	got := buf.String()
+
+	if strings.Contains(got, "ZgotmplZ") {
+		t.Fatal("data URI が html/template に落とされている")
+	}
+
+	_, rest, ok := strings.Cut(got, `<link rel="icon" type="image/svg+xml" href="`)
+	if !ok {
+		t.Fatal(`<link rel="icon"> が無い`)
+	}
+	href, _, ok := strings.Cut(rest, `"`)
+	if !ok {
+		t.Fatal("href が閉じていない")
+	}
+
+	// html/template は "+" を &#43; に escape する。ブラウザは属性値を
+	// 実体参照デコードしてから data URI を読むので、それに合わせて戻す。
+	href = strings.ReplaceAll(href, "&#43;", "+")
+
+	b64, ok := strings.CutPrefix(href, "data:image/svg+xml;base64,")
+	if !ok {
+		t.Fatalf("data URI ではない: %.40q", href)
+	}
+	decoded, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		t.Fatalf("base64 が壊れている: %v", err)
+	}
+	if !bytes.Equal(decoded, faviconSVG) {
+		t.Errorf("復元した SVG が元と違う: %d bytes, want %d", len(decoded), len(faviconSVG))
 	}
 }
