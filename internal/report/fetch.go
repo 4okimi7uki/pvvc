@@ -27,7 +27,7 @@ func FetchDailyReport(
 	topPageLimit int64,
 ) ([]DailyReport, []ga4.PagePathRank, error) {
 	var pvs map[string]decimal.Decimal
-	var topPages []ga4.PagePathRank
+	var dailyTop map[string][]ga4.PagePathRank
 	var totalCosts map[string]decimal.Decimal
 	var dailyCostByService map[string][]vercel.ServiceCost
 	var rates map[string]decimal.Decimal
@@ -46,14 +46,14 @@ func FetchDailyReport(
 
 		return nil
 	})
-	// GA4 TopPath
+	// GA4 TopPath（期間内の各日ぶんを取得する）
 	eg.Go(func() error {
-		report, err := ga4Client.FetchTopPagePaths(ctx, end.Format("2006-01-02"), end.Format("2006-01-02"), topPageLimit)
+		var err error
+		dailyTop, err = ga4Client.FetchDailyTopPagePaths(ctx, start.Format("2006-01-02"), end.Format("2006-01-02"), topPageLimit)
 		if err != nil {
 			addDone(ui.Red("  ✗ ") + "GA4 Top page path")
 			return err
 		}
-		topPages = report.PagePaths
 		addDone(ui.Green("  ✔ ") + "GA4 Top page path")
 
 		return nil
@@ -131,7 +131,10 @@ func FetchDailyReport(
 			CostJPYPerPV:   costJPYPerPV,
 			Rate:           rate,
 			CostByServices: dailyCostByService,
+			TopPages:       dailyTop[d.Format("2006-01-02")],
 		})
 	}
-	return reports, topPages, nil
+	// 従来の戻り値は最終日ぶんの上位ページ（Slack / ターミナル表示が使う）。
+	// 日次は reports[i].TopPages に入っているのでそちらを参照する。
+	return reports, dailyTop[end.Format("2006-01-02")], nil
 }

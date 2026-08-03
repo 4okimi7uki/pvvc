@@ -3,6 +3,7 @@ package chart
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -13,44 +14,90 @@ const defaultPageTitle = "GA4 PV × Vercel Cost chart | PVVC"
 //go:embed "templates/page.tmpl.html"
 var pageTmplSrc string
 
+// pvvcChartJS はブラウザ側の描画スクリプト。生成 HTML にインライン展開する。
+//
+//go:embed "templates/pvvc-chart.js"
+var pvvcChartJS string
+
 var pageTmpl = template.Must(template.New("page").Parse(pageTmplSrc))
 
 // PageOptions はチャート以外のページ側の設定。
 type PageOptions struct {
 	// Title は <title> の中身。空なら defaultPageTitle。
 	Title string
+	// Origin はサービスの公開 URL（config の service.url / 環境変数 BASE_URL）。
+	// JS 側でページパスからリンクを組み立てるのに使う。__PVVC_DATA__ の JSON に入る。
+	Origin string
 }
 
-// pageData はテンプレートに渡す値。
-type pageData struct {
+// PageData は __PVVC_DATA__ に書き出すチャートの元データ。
+// SVG を直接埋めるのをやめ、この JSON を JS 側で描画する。
+type PageData struct {
+	Range PageRange `json:"range"`
+	Days  []PageDay `json:"days"`
+	// Title / Origin は RenderPage が PageOptions から詰める。JS はここを読む。
+	// Title はページ上部の見出し（<title> タグと同じ値）。
+	Title  string `json:"title,omitempty"`
+	Origin string `json:"origin,omitempty"`
+}
+
+// PageRange は対象期間（両端とも含む）。
+type PageRange struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+}
+
+// PageDay は 1 日ぶんのデータ。
+type PageDay struct {
+	Date     string        `json:"date"`
+	Cost     float64       `json:"cost"`
+	PV       float64       `json:"pv"`
+	TopPages []PageTopPath `json:"topPages"`
+}
+
+// PageTopPath はその日の上位ページ 1 件。
+type PageTopPath struct {
+	Path  string `json:"path"`
+	Views int64  `json:"views"`
+}
+
+type pageTmplData struct {
 	Title string
-	Chart template.HTML
+	// Data は __PVVC_DATA__ に流し込む JSON。encoding/json が <>& を
+	// エスケープ済みなので、そのまま script 要素に置いてもブレイクアウトしない。
+	Data template.JS
+	// Script は pvvc-chart.js を <script type="module"> にそのまま展開したもの。
+	Script template.JS
 }
 
-// RenderPage は SVG を直接埋め込んだ単体 HTML を書き出す。
-// 外部ファイルを一切参照しないので file:// でそのまま開ける。
-func RenderPage(w io.Writer, opt Options, page PageOptions) error {
-	var svg bytes.Buffer
-	if err := RenderSVG(&svg, opt); err != nil {
-		return err
-	}
-
+// RenderPage は元データを __PVVC_DATA__ に JSON で埋めた単体 HTML を書き出す。
+// 描画は同梱の pvvc-chart.js が JSON を読んで行う。
+func RenderPage(w io.Writer, data PageData, page PageOptions) error {
 	if page.Title == "" {
 		page.Title = defaultPageTitle
 	}
+	data.Title = page.Title
+	data.Origin = page.Origin
 
-	// RenderSVG の出力は esc / escAttr を通した自前生成の SVG なので、
-	// html/template のエスケープを外して生のマークアップとして埋める。
-	// ここに外部由来の文字列を素通しで足さないこと。
-	data := pageData{Title: page.Title, Chart: template.HTML(svg.String())} //nolint:gosec // G203: 自前生成の SVG を意図的にインライン展開
-
-	// 途中で失敗したときに壊れた HTML を書き残さないよう、いったん溜める。
-	var out bytes.Buffer
-	out.Grow(svg.Len() + len(pageTmplSrc))
-	if err := pageTmpl.Execute(&out, data); err != nil {
+	raw, err := json.Marshal(data)
+	if err != nil {
 		return fmt.Errorf("chart: %w", err)
 	}
 
-	_, err := w.Write(out.Bytes())
+	tmplData := pageTmplData{
+		Title:  page.Title,
+		Data:   template.JS(raw),         //nolint:gosec // G203: json.Marshal 済みで <>& はエスケープ済み
+		Script: template.JS(pvvcChartJS), //nolint:gosec // G203: 同梱の自前スクリプトを意図的にインライン展開
+
+	}
+
+	// 途中で失敗したときに壊れた HTML を書き残さないよう、いったん溜める。
+	var out bytes.Buffer
+	out.Grow(len(raw) + len(pageTmplSrc) + len(pvvcChartJS))
+	if err = pageTmpl.Execute(&out, tmplData); err != nil {
+		return fmt.Errorf("chart: %w", err)
+	}
+
+	_, err = w.Write(out.Bytes())
 	return err
 }

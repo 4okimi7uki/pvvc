@@ -7,6 +7,21 @@
         "source.organizeImports": true,
       },
     },
+    "HTML": {
+      "format_on_save": "on",
+      "hard_tabs": false,
+      "tab_size": 2,
+    },
+    "CSS": {
+      "format_on_save": "on",
+      "hard_tabs": false,
+      "tab_size": 2,
+    },
+    "JavaScript": {
+      "format_on_save": "on",
+      "hard_tabs": false,
+      "tab_size": 2,
+    },
   },
   "lsp": {
     "gopls": {

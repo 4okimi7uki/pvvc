@@ -276,6 +276,45 @@ func buildTopPagesRequest(startDate, endDate string, offset int64, limit int64) 
 	}
 }
 
+// FetchDailyTopPagePaths は期間内の各日について上位ページを取得し、
+// 日付(YYYY-MM-DD)をキーに日ごとのランキングを返す。
+//
+// 1 日ずつ別リクエストで取るのは、date × pagePath を 1 クエリにまとめると
+// FetchDailyPageViews と同じくカーディナリティ上限であふれた分が (other) 行に
+// 丸められ、日別の精度が落ちるため（chunkDays のコメント参照）。日ごとに閉じた
+// 単日リクエストなら組み合わせ数が増えないので取りこぼさない。
+func (c *Client) FetchDailyTopPagePaths(ctx context.Context, startDate, endDate string, limit int64) (map[string][]PagePathRank, error) {
+	days, err := dateChunks(startDate, endDate, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	// マップへの書き込みは競合するので、いったん日付順のスロットに受ける。
+	perDay := make([][]PagePathRank, len(days))
+
+	eg, ctx := errgroup.WithContext(ctx)
+	eg.SetLimit(chunkConcurrency)
+	for i, d := range days {
+		eg.Go(func() error {
+			report, err := c.FetchTopPagePaths(ctx, d[0], d[1], limit)
+			if err != nil {
+				return err
+			}
+			perDay[i] = report.PagePaths
+			return nil
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+
+	out := make(map[string][]PagePathRank, len(days))
+	for i, d := range days {
+		out[d[0]] = perDay[i] // dateChunks(days=1) なので d[0] == d[1]
+	}
+	return out, nil
+}
+
 func (c *Client) FetchTopPagePaths(ctx context.Context, startDate, endDate string, limit int64) (*Report, error) {
 	report := &Report{
 		PropertyID: c.propertyID,
