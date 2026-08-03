@@ -104,7 +104,7 @@ func addCommonFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().Int64Var(&rootOpts.topPagesLimit, "top-pages", 20, "access top pages limit")
 	cmd.PersistentFlags().StringVar(&rootOpts.svgPath, "svg", "", "write the chart as SVG to this path (default: pvvc-<from>_<to>.svg)")
 	cmd.PersistentFlags().Lookup("svg").NoOptDefVal = "auto"
-	cmd.PersistentFlags().StringVar(&rootOpts.htmlPath, "html", "", "write the chart as a standalone HTML page to this path (default: pvvc_html/pvvc-<from>_<to>.html)")
+	cmd.PersistentFlags().StringVar(&rootOpts.htmlPath, "html", "", "write the chart as a standalone HTML page to this path (default: web/index.html)")
 	cmd.PersistentFlags().Lookup("html").NoOptDefVal = "auto"
 
 	// Default: 1 week. Use local calendar date stored as UTC midnight to match

@@ -2,14 +2,27 @@ package chart
 
 import (
 	"bytes"
+	"encoding/json"
 	"strings"
 	"testing"
 )
 
-// SVG が外部参照ではなく本文に埋まっていること。
-func TestRenderPageInlinesSVG(t *testing.T) {
+func fixturePageData() PageData {
+	return PageData{
+		Range: PageRange{From: "2026-07-22", To: "2026-07-23"},
+		Days: []PageDay{
+			{Date: "2026-07-22", Cost: 172.29, PV: 759707, TopPages: []PageTopPath{
+				{Path: "/ranking", Views: 1200},
+			}},
+			{Date: "2026-07-23", Cost: 168.4, PV: 743210},
+		},
+	}
+}
+
+// 元データが __PVVC_DATA__ に JSON として埋まっていること。
+func TestRenderPageEmbedsJSON(t *testing.T) {
 	var buf bytes.Buffer
-	if err := RenderPage(&buf, fixtureOptions(), PageOptions{}); err != nil {
+	if err := RenderPage(&buf, fixturePageData(), PageOptions{}); err != nil {
 		t.Fatalf("RenderPage() = %v", err)
 	}
 
@@ -17,28 +30,46 @@ func TestRenderPageInlinesSVG(t *testing.T) {
 	if !strings.HasPrefix(got, "<!doctype html>") {
 		t.Errorf("HTML になっていない: %.40s", got)
 	}
-	if !strings.Contains(got, `<svg xmlns="http://www.w3.org/2000/svg"`) {
-		t.Error("SVG がインライン展開されていない")
+	if !strings.Contains(got, `<script id="__PVVC_DATA__" type="application/json">`) {
+		t.Error("__PVVC_DATA__ の script が無い")
 	}
-	if strings.Contains(got, "&lt;svg") {
-		t.Error("SVG がエスケープされて文字列として出ている")
+
+	// script の中身が JSON として読め、往復できること。
+	const open = `<script id="__PVVC_DATA__" type="application/json">`
+	_, rest, _ := strings.Cut(got, open)
+	body, _, _ := strings.Cut(rest, "</script>")
+
+	var back PageData
+	if err := json.Unmarshal([]byte(body), &back); err != nil {
+		t.Fatalf("埋め込み JSON が読めない: %v\n%s", err, body)
 	}
-	if !strings.Contains(got, "</svg>") || !strings.Contains(got, "</html>") {
-		t.Error("SVG または HTML が閉じていない")
+	if back.Range.From != "2026-07-22" || len(back.Days) != 2 {
+		t.Errorf("JSON の内容が違う: %+v", back)
+	}
+	if len(back.Days[0].TopPages) != 1 || back.Days[0].TopPages[0].Path != "/ranking" {
+		t.Errorf("topPages が復元できない: %+v", back.Days[0].TopPages)
 	}
 }
 
-// 外部ファイルを一切参照しないこと（file:// で開けることの担保）。
-func TestRenderPageIsSelfContained(t *testing.T) {
+// JSON 内の </script> や <>& が script をブレイクアウトしないこと。
+func TestRenderPageEscapesJSON(t *testing.T) {
+	data := PageData{
+		Range: PageRange{From: "2026-07-22", To: "2026-07-22"},
+		Days: []PageDay{
+			{Date: "2026-07-22", Cost: 1, PV: 1, TopPages: []PageTopPath{
+				{Path: "</script><b>&", Views: 1},
+			}},
+		},
+	}
+
 	var buf bytes.Buffer
-	if err := RenderPage(&buf, fixtureOptions(), PageOptions{}); err != nil {
+	if err := RenderPage(&buf, data, PageOptions{}); err != nil {
 		t.Fatalf("RenderPage() = %v", err)
 	}
 
-	for _, ng := range []string{"fetch(", "<img", "<link", "<script", "src="} {
-		if strings.Contains(buf.String(), ng) {
-			t.Errorf("外部参照が含まれている: %q", ng)
-		}
+	// JSON 内の生の </script> が素通しされていないこと（< にエスケープされる）。
+	if strings.Contains(buf.String(), "</script><b>&") {
+		t.Error("JSON 内の </script> がエスケープされず素通しされている")
 	}
 }
 
@@ -56,23 +87,12 @@ func TestRenderPageTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
-			if err := RenderPage(&buf, fixtureOptions(), PageOptions{Title: tt.title}); err != nil {
+			if err := RenderPage(&buf, fixturePageData(), PageOptions{Title: tt.title}); err != nil {
 				t.Fatalf("RenderPage() = %v", err)
 			}
 			if want := "<title>" + tt.want + "</title>"; !strings.Contains(buf.String(), want) {
 				t.Errorf("%q が無い", want)
 			}
 		})
-	}
-}
-
-// 描画できないときは HTML の断片を書き残さないこと。
-func TestRenderPageErrorsOnNoData(t *testing.T) {
-	var buf bytes.Buffer
-	if err := RenderPage(&buf, Options{}, PageOptions{}); err == nil {
-		t.Fatal("データが無いときはエラーを期待したが nil")
-	}
-	if buf.Len() != 0 {
-		t.Errorf("失敗時に %d バイト書かれている: %q", buf.Len(), buf.String())
 	}
 }
