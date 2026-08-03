@@ -14,12 +14,17 @@ on:
           - dev
           - prod
 
+# Pages へのデプロイは同時に 1 つだけ。進行中のものは走り切らせる。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   report:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
 
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -58,9 +63,7 @@ jobs:
       - name: Aggregate and notify Slack
         run: pvvc report --notify --quiet --top-pages 15
 
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
+      # 生成物はコミットせず、Pages のアーティファクトとしてそのままデプロイする。
       - name: Build monthly chart page
         env:
           TZ: Asia/Tokyo
@@ -70,17 +73,24 @@ jobs:
           echo "to=$to" "from=$from"
           pvvc report --quiet --from "$from" --html=web/index.html
 
-      - name: Commit and Push updated web/index.html
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add web/*.html
-          if git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
-            git commit -m "update: graph"
-            git push https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }} HEAD:main
-          fi
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: web
+
+  deploy:
+    needs: report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
