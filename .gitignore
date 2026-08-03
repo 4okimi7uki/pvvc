@@ -16,3 +16,6 @@ internal/chart/testdata/preview.html
 pvvc_svg/
 pvvc_html/
 .DS_Store
+
+# Actions が毎回生成してそのまま Pages にデプロイするのでコミットしない
+web/
