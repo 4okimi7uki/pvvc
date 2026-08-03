@@ -21,9 +21,10 @@ type Client struct {
 	serviceName      string
 	vercelProjectURL string
 	serviceURL       string
+	chartURL         string
 }
 
-func New(webhookURL, serviceName, vercelProjectURL, serviceURL string) (*Client, error) {
+func New(webhookURL, serviceName, vercelProjectURL, serviceURL, chartURL string) (*Client, error) {
 	if webhookURL == "" {
 		return nil, fmt.Errorf("slack: webhook url is required")
 	}
@@ -33,6 +34,7 @@ func New(webhookURL, serviceName, vercelProjectURL, serviceURL string) (*Client,
 		serviceName:      serviceName,
 		vercelProjectURL: vercelProjectURL,
 		serviceURL:       serviceURL,
+		chartURL:         chartURL,
 	}, nil
 }
 
@@ -44,7 +46,7 @@ func (c *Client) Send(ctx context.Context, aiBody string, end time.Time, report 
 		topPath           = rep.FormatTopPage(topPages)
 	)
 
-	blocks := buildSlackBlocks(c.serviceName, llm, aiBody, c.vercelProjectURL, c.serviceURL, metricsRows, summary, costByService, end, topPath, topPageLimit)
+	blocks := buildSlackBlocks(c.serviceName, llm, aiBody, c.vercelProjectURL, c.serviceURL, c.chartURL, metricsRows, summary, costByService, end, topPath, topPageLimit)
 
 	body, err := json.Marshal(blockPayload{Blocks: blocks})
 	if err != nil {

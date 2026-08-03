@@ -204,6 +204,7 @@ func notifySlack(ctx context.Context, rep []report.DailyReport, topPages []ga4.P
 		cfg.GetString("service.name"),
 		cfg.GetString("vercel.project_url"),
 		cfg.GetString("service.url"),
+		cfg.GetString("service.chart_url"),
 	)
 	if err != nil {
 		return err

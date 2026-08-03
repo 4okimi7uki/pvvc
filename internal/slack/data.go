@@ -168,16 +168,22 @@ func buildGa4TopPathSection(end time.Time, topPages []rep.Row, topPageLimit int6
 	return ga4TopPathBlock
 }
 
-func buildLinkSection(vercelProjectURL string) []Block {
-	if vercelProjectURL == "" {
+func buildLinkSection(vercelProjectURL, chartURL string) []Block {
+	if vercelProjectURL == "" && chartURL == "" {
 		return nil
 	}
+
 	var linkSection []Block
 	var linkBody strings.Builder
 
-	fmt.Fprint(&linkBody, "🔗 *Links*\n")
-	fmt.Fprintf(&linkBody, " - <%s/usage|Vercel Usage>\n", vercelProjectURL)
-	fmt.Fprintf(&linkBody, " - <%s/logs|Vercel Logs>\n", vercelProjectURL)
+	if vercelProjectURL != "" {
+		fmt.Fprint(&linkBody, "🔗 *Links*\n")
+		fmt.Fprintf(&linkBody, " - <%s/usage|Vercel Usage>\n", vercelProjectURL)
+		fmt.Fprintf(&linkBody, " - <%s/logs|Vercel Logs>\n", vercelProjectURL)
+	}
+	if chartURL != "" {
+		fmt.Fprintf(&linkBody, " - <%s|Chart>\n", chartURL)
+	}
 
 	linkSection = append(linkSection,
 		Block{
@@ -188,7 +194,7 @@ func buildLinkSection(vercelProjectURL string) []Block {
 	return linkSection
 }
 
-func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL, serviceURL string, metrics [][]string, summary, costByService []rep.Row, end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
+func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL, serviceURL, chartURL string, metrics [][]string, summary, costByService []rep.Row, end time.Time, topPages []rep.Row, topPageLimit int64) []Block {
 	var blocks []Block
 	var mainSection []Block
 
@@ -205,7 +211,7 @@ func buildSlackBlocks(serviceName, llm, aiBody, vercelProjectURL, serviceURL str
 	blocks = slices.Concat(header, mainSection, vercelCostSection, topPathSection)
 
 	// 末尾に結合する
-	blocks = slices.Concat(blocks, buildLinkSection(vercelProjectURL))
+	blocks = slices.Concat(blocks, buildLinkSection(vercelProjectURL, chartURL))
 
 	return blocks
 }
