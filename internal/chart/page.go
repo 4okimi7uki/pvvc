@@ -20,9 +20,6 @@ var pageTmplSrc string
 //go:embed "templates/pvvc-chart.js"
 var pvvcChartJS string
 
-// faviconSVG はファビコン。assets/pvvc.svg の改行を詰めただけのコピー。
-// embed ディレクティブはパッケージディレクトリより上を参照できないため
-// assets/ を直接は埋め込めない。差し替えるときは両方直すこと。
 //
 //go:embed "templates/favicon.svg"
 var faviconSVG []byte
