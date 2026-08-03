@@ -85,7 +85,13 @@ func resolveSVGPath(p string, from, to time.Time) string {
 }
 
 // resolveHTMLPath は --html の出力先。
-func resolveHTMLPath(p string, from, to time.Time) string {
+func resolveHTMLPath(p string, from, to time.Time, isIndex bool) string {
+	if isIndex {
+		if p != svgPathAuto {
+			return p
+		}
+		return filepath.Join("web", "index.html")
+	}
 	return resolveOutPath(p, from, to, htmlAutoDir, ".html")
 }
 
@@ -126,7 +132,7 @@ func writeChartPage(reports []report.DailyReport) error {
 		return fmt.Errorf("html: no data to plot")
 	}
 
-	path := resolveHTMLPath(rootOpts.htmlPath, rootOpts.from, rootOpts.to)
+	path := resolveHTMLPath(rootOpts.htmlPath, rootOpts.from, rootOpts.to, true)
 
 	if err := writeOut("html", path, func(w io.Writer) error {
 		return chart.RenderPage(w, report.PageData(reports), chart.PageOptions{
