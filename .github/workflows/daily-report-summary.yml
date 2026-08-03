@@ -38,6 +38,7 @@ jobs:
       BASE_URL: ${{ secrets.BASE_URL }}
       WEBHOOK_PROD: ${{ secrets.WEBHOOK_PROD }}
       WEBHOOK_DEV: ${{ secrets.WEBHOOK_DEV }}
+      CHART_URL: ${{ secrets.CHART_URL }}
 
     steps:
       - name: Set Slack webhook URL
