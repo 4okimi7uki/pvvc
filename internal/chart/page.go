@@ -3,6 +3,7 @@ package chart
 import (
 	"bytes"
 	_ "embed"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -18,6 +19,18 @@ var pageTmplSrc string
 //
 //go:embed "templates/pvvc-chart.js"
 var pvvcChartJS string
+
+//
+//go:embed "templates/favicon.svg"
+var faviconSVG []byte
+
+// faviconDataURI は <link rel="icon"> に置く data URI。
+// 生成 HTML を 1 ファイルで完結させたいので、外部参照にせず埋め込む。
+//
+//nolint:gosec // G203: 同梱の自前 SVG を base64 にしただけで外部入力は混ざらない
+var faviconDataURI = template.URL(
+	"data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(faviconSVG),
+)
 
 var pageTmpl = template.Must(template.New("page").Parse(pageTmplSrc))
 
@@ -63,6 +76,9 @@ type PageTopPath struct {
 
 type pageTmplData struct {
 	Title string
+	// Favicon は data URI。html/template は data: を素の文字列だと
+	// #ZgotmplZ に潰すので template.URL で渡す。
+	Favicon template.URL
 	// Data は __PVVC_DATA__ に流し込む JSON。encoding/json が <>& を
 	// エスケープ済みなので、そのまま script 要素に置いてもブレイクアウトしない。
 	Data template.JS
@@ -85,15 +101,16 @@ func RenderPage(w io.Writer, data PageData, page PageOptions) error {
 	}
 
 	tmplData := pageTmplData{
-		Title:  page.Title,
-		Data:   template.JS(raw),         //nolint:gosec // G203: json.Marshal 済みで <>& はエスケープ済み
-		Script: template.JS(pvvcChartJS), //nolint:gosec // G203: 同梱の自前スクリプトを意図的にインライン展開
+		Title:   page.Title,
+		Favicon: faviconDataURI,
+		Data:    template.JS(raw),         //nolint:gosec // G203: json.Marshal 済みで <>& はエスケープ済み
+		Script:  template.JS(pvvcChartJS), //nolint:gosec // G203: 同梱の自前スクリプトを意図的にインライン展開
 
 	}
 
 	// 途中で失敗したときに壊れた HTML を書き残さないよう、いったん溜める。
 	var out bytes.Buffer
-	out.Grow(len(raw) + len(pageTmplSrc) + len(pvvcChartJS))
+	out.Grow(len(raw) + len(pageTmplSrc) + len(pvvcChartJS) + len(faviconDataURI))
 	if err = pageTmpl.Execute(&out, tmplData); err != nil {
 		return fmt.Errorf("chart: %w", err)
 	}
