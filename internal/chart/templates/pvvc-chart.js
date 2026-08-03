@@ -519,7 +519,7 @@ function Stats({ days, range }) {
   `;
 }
 
-function App({ range, days = [], origin = "" }) {
+function App({ title, range, days = [], origin = "" }) {
   const [selected, setSelected] = useState(null);
   const toggle = (date) => setSelected((s) => (s === date ? null : date));
 
@@ -531,11 +531,16 @@ function App({ range, days = [], origin = "" }) {
     ? days.reduce((s, d) => s + Number(d.cost), 0) / days.length
     : 0;
 
+  const resolvedTitle = title
+    ? `${title}｜GA4 PV × Vercel Cost Chart`
+    : "GA4 PV × Vercel Cost Chart";
+
   return html`
     <div class="container">
       <header class="pageHeader">
         <div>
-          <h1 class="pageHeader__title">PVVC Chart</h1>
+          <h1 class="pageHeader__title">${resolvedTitle}</h1>
+          <small class="pageHeader__subtitle">Powered by P.V.V.C.</small>
           ${period && html`<p class="pageHeader__period">${period}</p>`}
         </div>
       </header>

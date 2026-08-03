@@ -214,7 +214,7 @@ pvvc report --svg=- > chart.svg      # 標準出力に流す
 同じグラフを SVG のまま埋め込んだ HTML を書き出します。使い方は `--svg` と同じです。
 
 ```bash
-pvvc report --html                   # ./pvvc_html/pvvc-20260501_20260726.html に出力
+pvvc report --html                   # ./web/index.html に出力
 pvvc report --html=docs/index.html   # パス指定（ディレクトリは自動で作成）
 pvvc report --html=- > chart.html    # 標準出力に流す
 ```
