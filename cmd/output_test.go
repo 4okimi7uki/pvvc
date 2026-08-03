@@ -56,7 +56,7 @@ func TestResolveHTMLPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := resolveHTMLPath(tt.in, from, to); got != tt.want {
+			if got := resolveHTMLPath(tt.in, from, to, false); got != tt.want {
 				t.Errorf("resolveHTMLPath(%q) = %q, want %q", tt.in, got, tt.want)
 			}
 		})
