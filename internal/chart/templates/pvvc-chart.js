@@ -14,10 +14,11 @@ const html = htm.bind(h);
 
 // --- 寸法・色（theme.go の既定値）---
 const WIDTH = 1369;
-// HEIGHT と PAD.top は凡例とプロットの間隔を広げるため元の 300 / 26 から +6 した。
-// 同じだけ上げているので PLOT_H（プロットの高さ）は 224 のまま変わらない。
-const HEIGHT = 306;
-const PAD = { top: 32, right: 78, bottom: 50, left: 58 };
+// 凡例は SVG の外（カードのヘッダー）に出したので、PAD.top は右軸の "PV" ラベルと
+// ピーク PV の吹き出しが収まるぶんだけ。PLOT_H（プロットの高さ）は 224。
+// "PV" は baseline がプロット上端の -18、font-size 14 なので上に 29px 必要。
+const HEIGHT = 292;
+const PAD = { top: 34, right: 78, bottom: 34, left: 58 };
 const TICKS = 5;
 const BAR_RATIO = 0.56;
 const MAX_LINE_DOTS = 14;
@@ -30,8 +31,9 @@ const LINE_COLOR = "#e06c00";
 const GRID_COLOR = "#ebebeb";
 const TEXT_COLOR = "#8f8f8f";
 const DOT_FILL = "#fff";
+// 軸ラベルは等幅（page.tmpl.html の --font-mono と同じ）。数字が揃う。
 const FONT_FAMILY =
-  "Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif";
+  "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const BARS_NAME = "Vercel cost / day (USD)";
 const LINE_NAME = "GA4 pageviews";
@@ -145,8 +147,7 @@ function xLabels(days, limit = 8) {
 
 // ホバー時の <title>（slotTitles の移植）。
 function slotTitle(d) {
-  const wd = WEEKDAYS[new Date(d.date + "T00:00:00").getDay()];
-  return `${d.date} (${wd})\n$${Number(d.cost).toFixed(2)}  |  ${comma(d.pv)} PV`;
+  return `${dayWithWeekday(d.date)}\n$${Number(d.cost).toFixed(2)}  |  ${comma(d.pv)} PV`;
 }
 
 // --- チャート本体 ---
@@ -174,15 +175,6 @@ function Graph({ days, selected, onSelect }) {
   let top = pts[0];
   for (const p of pts) if (p.v > top.v) top = p;
 
-  const from = days[0].date;
-  const to = days[n - 1].date;
-  const caption = from === to ? from : `${from} → ${to} (${n} days)`;
-
-  // 折れ線凡例の x。1つ目のラベル幅ぶん空ける。固定値だとフォントを変えたとき
-  // ラベルに重なるので、文字数 × フォントサイズから幅をざっくり見積もって置く。
-  const LEGEND_FONT = 16;
-  const SWATCH = 15 + Math.ceil(BARS_NAME.length * LEGEND_FONT * 0.55) + 24;
-
   return html`
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -193,34 +185,6 @@ function Graph({ days, selected, onSelect }) {
       role="img"
       aria-label="Vercel daily cost with GA4 pageviews overlaid"
     >
-      <!-- 凡例 -->
-      <g
-        transform="translate(${PAD.left},16)"
-        font-size=${LEGEND_FONT}
-        fill=${TEXT_COLOR}
-      >
-        <rect
-          x="0"
-          y="-7"
-          width="9"
-          height="9"
-          rx="1.5"
-          fill=${BAR_COLOR}
-          opacity="0.85"
-        />
-        <text x="15" y="1">${BARS_NAME}</text>
-        <line
-          x1=${SWATCH}
-          y1="-3"
-          x2=${SWATCH + 22}
-          y2="-3"
-          stroke=${LINE_COLOR}
-          stroke-width="2"
-        />
-        <circle cx=${SWATCH + 11} cy="-3" r="2.8" fill=${LINE_COLOR} />
-        <text x=${SWATCH + 28} y="1">${LINE_NAME}</text>
-      </g>
-
       <g transform="translate(${PAD.left},${PAD.top})">
         <!-- 選択中の日の帯 -->
         ${
@@ -355,15 +319,6 @@ function Graph({ days, selected, onSelect }) {
                 ${l.text}
               </text>`,
           )}
-          <text
-            x=${num(PLOT_W)}
-            y=${num(PLOT_H + 40)}
-            text-anchor="end"
-            font-size="12"
-            opacity="0.7"
-          >
-            ${caption}
-          </text>
         </g>
 
         <!-- クリック用の当たり判定（列の全高） -->
@@ -429,7 +384,14 @@ function PageList({ days, origin, selected, onSelect }) {
 
   return html`
     <section class="pages">
-      <div>
+      <div class="pages__head">
+        <p class="pages__title">日別データ</p>
+        <div class="pages__keys">
+          <span class="cost">Cost</span>
+          <span class="pv">Pageviews</span>
+        </div>
+      </div>
+      <div class="pages__body">
         ${[...days].reverse().map((d) => {
           const open = selected === d.date;
           const pages = d.topPages || [];
@@ -440,34 +402,48 @@ function PageList({ days, origin, selected, onSelect }) {
           >
             <button class="day__head" onClick=${() => onSelect(d.date)}>
               <div class="day__date">
-                <span>${open ? "▾ " : "▸ "}</span>${d.date}
+                <span class="day__caret">▶</span>
+                <span class="day__dateText">${d.date}</span>
+                ${
+                  pages.length > 0 &&
+                  html`<span class="day__tag">Top ${pages.length}</span>`
+                }
               </div>
               <div class="day__meta">
-                <div>$${Number(d.cost).toFixed(2)}</div>
-                <div>${comma(d.pv)} PV</div>
+                <span class="cost">$${Number(d.cost).toFixed(2)}</span>
+                <span class="pv">${comma(d.pv)} PV</span>
               </div>
             </button>
             ${
               open &&
-              html`<ul class="day__list">
+              html`<div class="day__list">
                 ${
                   pages.length === 0
-                    ? html`<li class="day__empty">上位ページなし</li>`
-                    : pages.map(
-                        (p) =>
-                          html`<li key=${p.path}>
-                            <a
-                              href=${origin + p.path}
-                              target="_blank"
-                              rel="noopener"
-                            >
-                              <div class="day__path">${p.path}</div>
-                              <div class="day__views">${comma(p.views)}</div>
-                            </a>
-                          </li>`,
-                      )
+                    ? html`<p class="day__empty">ページ別データなし</p>`
+                    : html`
+                        <div class="day__listHead">
+                          <span>Path</span><span>Views</span>
+                        </div>
+                        <ul>
+                          ${pages.map(
+                            (p) =>
+                              html`<li key=${p.path}>
+                                <a
+                                  href=${origin + p.path}
+                                  target="_blank"
+                                  rel="noopener"
+                                >
+                                  <span class="day__path">${p.path}</span>
+                                  <span class="day__views"
+                                    >${comma(p.views)}</span
+                                  >
+                                </a>
+                              </li>`,
+                          )}
+                        </ul>
+                      `
                 }
-              </ul>`
+              </div>`
             }
           </div>`;
         })}
@@ -476,7 +452,74 @@ function PageList({ days, origin, selected, onSelect }) {
   `;
 }
 
-function App({ title = "", range, days = [], origin = "" }) {
+// --- 上部の統計カード ---
+
+// weekday は "2026-06-08" -> "Mon"。
+const weekday = (iso) => WEEKDAYS[new Date(iso + "T00:00:00").getDay()];
+
+// dayWithWeekday は "2026-06-08 (Mon)"。カードの補足行に使う。
+const dayWithWeekday = (iso) => `${iso} (${weekday(iso)})`;
+
+// summarize は days から統計カードの中身を組み立てる。
+function summarize(days, range) {
+  const n = days.length;
+  if (n === 0) return [];
+
+  const totalCost = days.reduce((s, d) => s + Number(d.cost), 0);
+  const peakPv = days.reduce((a, d) => (Number(d.pv) > Number(a.pv) ? d : a));
+  const peakCost = days.reduce((a, d) =>
+    Number(d.cost) > Number(a.cost) ? d : a,
+  );
+  const from = range ? range.from : days[0].date;
+  const to = range ? range.to : days[n - 1].date;
+
+  return [
+    {
+      label: "計測期間",
+      value: comma(n),
+      unit: "日",
+      sub: `${from} → ${to}`,
+    },
+    {
+      label: "トータルコスト",
+      value: "$" + comma(totalCost),
+      sub: `${comma(n)}日間合計`,
+    },
+    {
+      label: "ピーク PV",
+      value: comma(peakPv.pv),
+      sub: dayWithWeekday(peakPv.date),
+    },
+    {
+      label: "ピークコスト",
+      value: "$" + Number(peakCost.cost).toFixed(2),
+      unit: "/day",
+      sub: dayWithWeekday(peakCost.date),
+    },
+  ];
+}
+
+function Stats({ days, range }) {
+  const cards = summarize(days, range);
+  if (cards.length === 0) return null;
+
+  return html`
+    <div class="stats">
+      ${cards.map(
+        (s) =>
+          html`<div class="stat" key=${s.label}>
+            <p class="stat__label">${s.label}</p>
+            <p class="stat__value">
+              ${s.value}${s.unit && html`<span class="stat__unit">${s.unit}</span>`}
+            </p>
+            <p class="stat__sub">${s.sub}</p>
+          </div>`,
+      )}
+    </div>
+  `;
+}
+
+function App({ range, days = [], origin = "" }) {
   const [selected, setSelected] = useState(null);
   const toggle = (date) => setSelected((s) => (s === date ? null : date));
 
@@ -484,22 +527,58 @@ function App({ title = "", range, days = [], origin = "" }) {
     range &&
     (range.from === range.to ? range.from : `${range.from} 〜 ${range.to}`);
 
+  const avgCost = days.length
+    ? days.reduce((s, d) => s + Number(d.cost), 0) / days.length
+    : 0;
+
   return html`
-    <header class="pageHeader">
-      ${title && html`<h1 class="pageHeader__title">PVVC Chart</h1>`}
-      ${period && html`<p class="pageHeader__period">${period}</p>`}
-    </header>
-    <main class="main">
-      <div class="chartWrapper">
-        <${Graph} days=${days} selected=${selected} onSelect=${toggle} />
-      </div>
-    </main>
-    <${PageList}
-      days=${days}
-      origin=${origin}
-      selected=${selected}
-      onSelect=${toggle}
-    />
+    <div class="container">
+      <header class="pageHeader">
+        <div>
+          <h1 class="pageHeader__title">PVVC Chart</h1>
+          ${period && html`<p class="pageHeader__period">${period}</p>`}
+        </div>
+      </header>
+
+      <${Stats} days=${days} range=${range} />
+
+      <section class="card">
+        <div class="card__head">
+          <div class="legend">
+            <span><span class="legend__bar"></span>${BARS_NAME}</span>
+            <span>
+              <svg width="20" height="8" viewBox="0 0 20 8" aria-hidden="true">
+                <line
+                  x1="0"
+                  y1="4"
+                  x2="20"
+                  y2="4"
+                  stroke=${LINE_COLOR}
+                  stroke-width="2"
+                />
+                <circle cx="10" cy="4" r="2.5" fill=${LINE_COLOR} />
+              </svg>
+              ${LINE_NAME}
+            </span>
+          </div>
+          <span class="mono">avg $${avgCost.toFixed(2)}/day</span>
+        </div>
+        <div class="chartWrapper">
+          <${Graph} days=${days} selected=${selected} onSelect=${toggle} />
+        </div>
+        <div class="card__foot">
+          <p>棒グラフ: 左軸 (USD) ／ 折れ線: 右軸 (PV数)</p>
+          <p class="mono">Source: Vercel billing + GA4</p>
+        </div>
+      </section>
+
+      <${PageList}
+        days=${days}
+        origin=${origin}
+        selected=${selected}
+        onSelect=${toggle}
+      />
+    </div>
   `;
 }
 
@@ -511,4 +590,4 @@ if (el && root) {
   render(html`<${App} ...${data} />`, root);
 }
 
-export { App, Graph, PageList, makeScale, xLabels };
+export { App, Graph, PageList, Stats, makeScale, summarize, xLabels };
