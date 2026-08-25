@@ -3,7 +3,7 @@ module github.com/4okimi7uki/pvvc
 go 1.25.8
 
 require (
-	cloud.google.com/go/auth v0.22.0
+	cloud.google.com/go/auth v0.23.2
 	github.com/anthropics/anthropic-sdk-go v1.61.0
 	github.com/briandowns/spinner v1.23.2
 	github.com/charmbracelet/huh v1.0.0
@@ -88,6 +88,6 @@ require (
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260706201446-f0a921348800 // indirect
-	google.golang.org/grpc v1.82.0 // indirect
+	google.golang.org/grpc v1.82.1 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
