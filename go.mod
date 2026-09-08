@@ -1,6 +1,6 @@
 module github.com/4okimi7uki/pvvc
 
-go 1.25.8
+go 1.26.0
 
 require (
 	cloud.google.com/go/auth v0.22.0
@@ -14,7 +14,7 @@ require (
 	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
-	golang.org/x/sync v0.22.0
+	golang.org/x/sync v0.23.0
 	google.golang.org/api v0.290.0
 	google.golang.org/genai v1.65.0
 )
