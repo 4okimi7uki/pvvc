@@ -40,7 +40,8 @@ type PageOptions struct {
 	Title string
 	// Origin はサービスの公開 URL（config の service.url / 環境変数 BASE_URL）。
 	// JS 側でページパスからリンクを組み立てるのに使う。__PVVC_DATA__ の JSON に入る。
-	Origin string
+	Origin      string
+	GeneratedAt string
 }
 
 // PageData は __PVVC_DATA__ に書き出すチャートの元データ。
@@ -50,8 +51,9 @@ type PageData struct {
 	Days  []PageDay `json:"days"`
 	// Title / Origin は RenderPage が PageOptions から詰める。JS はここを読む。
 	// Title はページ上部の見出し（<title> タグと同じ値）。
-	Title  string `json:"title,omitempty"`
-	Origin string `json:"origin,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Origin      string `json:"origin,omitempty"`
+	GeneratedAt string `json:"generatedAt,omitempty"`
 }
 
 // PageRange は対象期間（両端とも含む）。
@@ -91,6 +93,7 @@ type pageTmplData struct {
 func RenderPage(w io.Writer, data PageData, page PageOptions) error {
 	data.Title = page.Title // サービス名のみ（空なら JS 側がデフォルト表示する）
 	data.Origin = page.Origin
+	data.GeneratedAt = page.GeneratedAt
 	if page.Title == "" {
 		page.Title = defaultPageTitle
 	}

@@ -138,6 +138,8 @@ func writeChartPage(reports []report.DailyReport) error {
 		return chart.RenderPage(w, report.PageData(reports), chart.PageOptions{
 			Title:  pageTitle(),
 			Origin: cfg.GetString("service.url"),
+			GeneratedAt: time.Now().In(time.FixedZone("JST", 9*60*60)).
+				Format("2006-01-02 15:04 JST"),
 		})
 	}); err != nil {
 		return err
