@@ -6,7 +6,7 @@
 // 描画ロジックは Go 側の internal/chart（svg.go / scale.go / theme.go / format.go）の
 // 移植。--svg で吐く静的 SVG と見た目を合わせてある。こちらはブラウザで触るための
 // インタラクティブ版で、バーをクリックするとその日の上位ページを下に展開する。
-import { h, render } from "https://esm.sh/preact";
+import { h, render, Fragment } from "https://esm.sh/preact";
 import { useState, useEffect, useRef } from "https://esm.sh/preact/hooks";
 import htm from "https://esm.sh/htm";
 
@@ -145,13 +145,14 @@ function xLabels(days, limit = 8) {
   return out;
 }
 
-// ホバー時の <title>（slotTitles の移植）。
-function slotTitle(d) {
-  return `${dayWithWeekday(d.date)}\n$${Number(d.cost).toFixed(2)}  |  ${comma(d.pv)} PV`;
-}
+// ツールチップの横幅（右端で左に反転させる判定に使う）。
+const TIP_W = 220;
 
 // --- チャート本体 ---
 function Graph({ days, selected, onSelect }) {
+  // ホバー中の列インデックスと、マウスのビューポート座標（fixed 配置に使う）。
+  const [hover, setHover] = useState(null); // { i, x, y }
+
   const n = days.length;
   if (n === 0) return null;
 
@@ -175,19 +176,22 @@ function Graph({ days, selected, onSelect }) {
   let top = pts[0];
   for (const p of pts) if (p.v > top.v) top = p;
 
+  const hd = hover != null ? days[hover.i] : null;
+
   return html`
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 ${WIDTH} ${HEIGHT}"
-      width=${WIDTH}
-      height=${HEIGHT}
-      font-family=${FONT_FAMILY}
-      role="img"
-      aria-label="Vercel daily cost with GA4 pageviews overlaid"
-    >
-      <g transform="translate(${PAD.left},${PAD.top})">
-        <!-- 選択中の日の帯 -->
-        ${
+    <${Fragment}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 ${WIDTH} ${HEIGHT}"
+        width=${WIDTH}
+        height=${HEIGHT}
+        font-family=${FONT_FAMILY}
+        role="img"
+        aria-label="Vercel daily cost with GA4 pageviews overlaid"
+      >
+        <g transform="translate(${PAD.left},${PAD.top})">
+          <!-- 選択中の日の帯 -->
+          ${
           selIdx >= 0 &&
           html`<rect
             x=${num(selIdx * slot)}
@@ -199,9 +203,9 @@ function Graph({ days, selected, onSelect }) {
           />`
         }
 
-        <!-- 左軸（コスト）: グリッド + 目盛り -->
-        <g font-size="14" fill=${BAR_COLOR}>
-          ${left.values().map(
+          <!-- 左軸（コスト）: グリッド + 目盛り -->
+          <g font-size="14" fill=${BAR_COLOR}>
+            ${left.values().map(
             (v) =>
               html`<g>
                 <line
@@ -218,14 +222,14 @@ function Graph({ days, selected, onSelect }) {
                 >
               </g>`,
           )}
-        </g>
+          </g>
 
-        <!-- 右軸（PV） -->
-        <g font-size="14" fill=${LINE_COLOR}>
-          <text x=${num(PLOT_W + 11)} y="-18" font-size="14" opacity="0.8">
-            PV
-          </text>
-          ${right.values().map(
+          <!-- 右軸（PV） -->
+          <g font-size="14" fill=${LINE_COLOR}>
+            <text x=${num(PLOT_W + 11)} y="-18" font-size="14" opacity="0.8">
+              PV
+            </text>
+            ${right.values().map(
             (v) =>
               html`<g>
                 <line
@@ -242,11 +246,11 @@ function Graph({ days, selected, onSelect }) {
                 >
               </g>`,
           )}
-        </g>
+          </g>
 
-        <!-- 棒（コスト） -->
-        <g>
-          ${days.map((d, i) => {
+          <!-- 棒（コスト） -->
+          <g>
+            ${days.map((d, i) => {
             const x = i * slot + (slot - barW) / 2;
             const y = left.y(plotValue(d.cost));
             const op =
@@ -260,18 +264,18 @@ function Graph({ days, selected, onSelect }) {
               fill-opacity=${op}
             />`;
           })}
-        </g>
+          </g>
 
-        <!-- 折れ線（PV） -->
-        <polyline
-          points=${pts.map((p) => `${num(p.x)},${num(p.y)}`).join(" ")}
-          fill="none"
-          stroke=${LINE_COLOR}
-          stroke-width="2"
-          stroke-linejoin="round"
-          stroke-linecap="round"
-        />
-        ${
+          <!-- 折れ線（PV） -->
+          <polyline
+            points=${pts.map((p) => `${num(p.x)},${num(p.y)}`).join(" ")}
+            fill="none"
+            stroke=${LINE_COLOR}
+            stroke-width="2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+          ${
           n <= MAX_LINE_DOTS &&
           pts.map(
             (p) =>
@@ -285,31 +289,31 @@ function Graph({ days, selected, onSelect }) {
               />`,
           )
         }
-        <text
-          x=${num(top.x)}
-          y=${num(top.y - 10)}
-          text-anchor="middle"
-          font-size="15"
-          font-weight="600"
-          fill=${LINE_COLOR}
-          stroke="white"
-          stroke-width="2"
-          paint-order="stroke fill"
-        >
-          ${comma(top.v)}
-        </text>
+          <text
+            x=${num(top.x)}
+            y=${num(top.y - 10)}
+            text-anchor="middle"
+            font-size="15"
+            font-weight="600"
+            fill=${LINE_COLOR}
+            stroke="white"
+            stroke-width="2"
+            paint-order="stroke fill"
+          >
+            ${comma(top.v)}
+          </text>
 
-        <!-- X 軸 -->
-        <g font-size="15" fill=${TEXT_COLOR}>
-          <line
-            x1="0"
-            y1=${num(PLOT_H)}
-            x2=${num(PLOT_W)}
-            y2=${num(PLOT_H)}
-            stroke=${GRID_COLOR}
-            shape-rendering="crispEdges"
-          />
-          ${labels.map(
+          <!-- X 軸 -->
+          <g font-size="15" fill=${TEXT_COLOR}>
+            <line
+              x1="0"
+              y1=${num(PLOT_H)}
+              x2=${num(PLOT_W)}
+              y2=${num(PLOT_H)}
+              stroke=${GRID_COLOR}
+              shape-rendering="crispEdges"
+            />
+            ${labels.map(
             (l) =>
               html`<text
                 x=${num(centerX(l.at))}
@@ -319,11 +323,11 @@ function Graph({ days, selected, onSelect }) {
                 ${l.text}
               </text>`,
           )}
-        </g>
+          </g>
 
-        <!-- クリック用の当たり判定（列の全高） -->
-        <g>
-          ${days.map(
+          <!-- クリック用の当たり判定（列の全高）＋ホバーでツールチップ -->
+          <g>
+            ${days.map(
             (d, i) =>
               html`<rect
                 x=${num(i * slot)}
@@ -333,13 +337,46 @@ function Graph({ days, selected, onSelect }) {
                 fill="transparent"
                 style="cursor:pointer"
                 onClick=${() => onSelect(d.date)}
-              >
-                <title>${slotTitle(d)}</title>
-              </rect>`,
+                onMouseEnter=${(e) =>
+                  setHover({ i, x: e.clientX, y: e.clientY })}
+                onMouseMove=${(e) =>
+                  setHover({ i, x: e.clientX, y: e.clientY })}
+                onMouseLeave=${() => setHover(null)}
+              />`,
           )}
+          </g>
         </g>
-      </g>
-    </svg>
+      </svg>
+      ${hd && html`<${Tooltip} day=${hd} x=${hover.x} y=${hover.y} />`}
+    <//>
+  `;
+}
+
+// --- ホバー時のツールチップ（旧 <title> の置き換え）---
+// マウスのビューポート座標に position:fixed で追従する。右端に近いときは
+// 左側に反転させて画面外に出ないようにする。
+function Tooltip({ day, x, y }) {
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1280;
+  const flipX = x + 16 + TIP_W > vw;
+  const tx = flipX ? "calc(-100% - 16px)" : "16px";
+  const style = `left:${x}px; top:${y}px; transform: translate(${tx}, 16px);`;
+
+  return html`
+    <div class="chartTip" style=${style}>
+      <div class="chartTip__date">${dayWithWeekday(day.date)}</div>
+      <div class="chartTip__row">
+        <span class="chartTip__k">
+          <i class="chartTip__dot chartTip__dot--cost"></i>Cost
+        </span>
+        <span class="chartTip__v">$${Number(day.cost).toFixed(2)}</span>
+      </div>
+      <div class="chartTip__row">
+        <span class="chartTip__k">
+          <i class="chartTip__dot chartTip__dot--pv"></i>Pageviews
+        </span>
+        <span class="chartTip__v">${comma(day.pv)}</span>
+      </div>
+    </div>
   `;
 }
 
@@ -478,7 +515,7 @@ function summarize(days, range) {
       label: "計測期間",
       value: comma(n),
       unit: "日",
-      sub: `${from} → ${to}`,
+      sub: `${from} 〜 ${to}`,
     },
     {
       label: "トータルコスト",
@@ -519,7 +556,7 @@ function Stats({ days, range }) {
   `;
 }
 
-function App({ title, range, days = [], origin = "" }) {
+function App({ title, range, days = [], origin = "", generatedAt = "" }) {
   const [selected, setSelected] = useState(null);
   const toggle = (date) => setSelected((s) => (s === date ? null : date));
 
@@ -543,6 +580,13 @@ function App({ title, range, days = [], origin = "" }) {
           <small class="pageHeader__subtitle">Powered by P.V.V.C.</small>
           ${period && html`<p class="pageHeader__period">${period}</p>`}
         </div>
+        ${
+          generatedAt &&
+          html`<p class="pageHeader__generated">
+            <span class="pageHeader__generatedLabel">UpdatedAt</span>
+            <span class="mono">${generatedAt}</span>
+          </p>`
+        }
       </header>
 
       <${Stats} days=${days} range=${range} />
